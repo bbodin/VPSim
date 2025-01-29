@@ -22,7 +22,7 @@ add_custom_target(qemu
     COMMAND ${QEMU_SOURCE_DIR}/configure --target-list=aarch64-softmmu
         --disable-sparse --disable-sdl --disable-gtk --disable-vnc --disable-xen
         --disable-brlapi --disable-vnc-sasl --disable-vnc-jpeg --disable-vnc-png
-        --disable-curses --disable-curl --disable-bluez  --disable-kvm --disable-bsd-user
+        --disable-curses --disable-curl --disable-kvm --disable-bsd-user
         --disable-pie --disable-coroutine-pool --disable-attr --disable-blobs --disable-docs
         --disable-spice --disable-usb-redir --disable-guest-agent --disable-cap-ng --disable-libiscsi
         --disable-libusb --disable-werror ${QEMU_ENABLE_DEBUG}
