@@ -3,7 +3,7 @@
 	url = https://github.com/CEA-LIST/vpsim-systemc.git
 [submodule "vpsim-release"]
 	path = vpsim-release
-	url = https://github.com/CEA-LIST/vpsim-release.git
+	url = https://github.com/bbodin/vpsim-release.git
 [submodule "vpsim-qemu"]
 	path = vpsim-qemu
 	url = https://github.com/CEA-LIST/vpsim-qemu.git
