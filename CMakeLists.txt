@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
+# Unfortunately some dependencies are not up to date.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
 project(vpsim)
 
 set(INSTALL_RELEASE_DIR ${CMAKE_SOURCE_DIR}/vpsim-release)
@@ -15,19 +18,27 @@ endif()
 
 # Ensure the QEMU build directory exists (create it if not)
 file(MAKE_DIRECTORY ${QEMU_BINARY_DIR})
+include(ExternalProject)
 
-add_custom_target(qemu
-    # COMMAND ${CMAKE_COMMAND} -E echo "Checking out branch ${QEMU_BRANCH}"
-    # COMMAND git checkout ${QEMU_BRANCH}
-    COMMAND ${QEMU_SOURCE_DIR}/configure --target-list=aarch64-softmmu
+ExternalProject_Add(qemu
+        SOURCE_DIR    ${QEMU_SOURCE_DIR}
+        BINARY_DIR    ${QEMU_BINARY_DIR}
+        CONFIGURE_COMMAND ${QEMU_SOURCE_DIR}/configure --target-list=aarch64-softmmu
         --disable-sparse --disable-sdl --disable-gtk --disable-vnc --disable-xen
         --disable-brlapi --disable-vnc-sasl --disable-vnc-jpeg --disable-vnc-png
         --disable-curses --disable-curl --disable-kvm --disable-bsd-user
         --disable-pie --disable-coroutine-pool --disable-attr --disable-blobs --disable-docs
         --disable-spice --disable-usb-redir --disable-guest-agent --disable-cap-ng --disable-libiscsi
         --disable-libusb --disable-werror ${QEMU_ENABLE_DEBUG}
-    COMMAND make
-    WORKING_DIRECTORY ${QEMU_BINARY_DIR}
+        # BUILD_COMMAND ${CMAKE_MAKE_PROGRAM}
+        INSTALL_COMMAND ""                      # no install step
+        BUILD_ALWAYS OFF                        # don’t rebuild every time
+        UPDATE_DISCONNECTED 1                   # don’t try to git/pull
+        BUILD_BYPRODUCTS ${QEMU_BINARY_DIR}/qemu-system-aarch64
+        LOG_CONFIGURE 1
+        LOG_BUILD 1
+        USES_TERMINAL_CONFIGURE 1
+        USES_TERMINAL_BUILD     1
 )
 
 ##### Build VPSim #####
