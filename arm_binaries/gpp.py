@@ -203,6 +203,7 @@ if __name__ == '__main__':
     arguments = parse_arguments ()
 
     conf["software"]["kernel"]["path"] = os.path.abspath(arguments["image"])
+    conf["log_dir"] = os.path.abspath(".")
     if arguments["debug"] :
         conf["log_file"] = os.path.abspath(arguments["debug"])
         conf["log_execution"] = True
