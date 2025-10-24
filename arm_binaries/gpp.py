@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Copyright (C) 2024 Commissariat à l'énergie atomique et aux énergies alternatives (CEA)
 
@@ -13,6 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 
 import os
 
@@ -45,8 +48,8 @@ conf = {
 
     'ram': [
         {
-            'base': 0x40000000,
-            'size': 0x100000000
+            'base':   0x40000000,
+            'size':  0x100000000
         }
     ],
 
@@ -58,8 +61,6 @@ conf = {
             'irq': 11
         }
     ],
-
-    'block': [],
 
     'net': [
         {
@@ -80,11 +81,7 @@ conf = {
     'sesam_monitor_addr': 0x17000000,
 
     'software': {
-       'mode': 'minimal', # minimal
-
-       'elf': [],
-
-       'bin': [],
+       'mode': 'minimal',
 
        'kernel': {
            'path': os.path.join(os.path.dirname(os.path.abspath(__file__)),"kernel_hello_world.elf"),
@@ -170,20 +167,48 @@ conf = {
         },
     },
 
-    # Provide a port to start in Debug mode
-    # (You then need to connect a cross-gdb to start the simulation !)
     'gdb_port': None,
-    'log_execution': False,
-    'log_file': os.path.join(os.environ['VPSIM_HOME'],'bin','log.txt'),
 }
 
-def main () :
-    print (os.environ)
-    # Build the config
-    from armv8_platform import FullSystem
-    sys = FullSystem(conf)
-    # Run simulation
-    sys.build(simulate=True,wait=True,silent=False,)
+
+import argparse
+import sys
+
+default_image = os.path.join(os.path.dirname(os.path.abspath(__file__)),"kernel_hello_world.elf")
+
+def parse_arguments() -> dict:
+    parser = argparse.ArgumentParser(description="Process an image and optionally a debug file.")
+    parser.add_argument('--image', required=False, help='Path to the image file')
+    parser.add_argument('--debug', required=False, help='Path to the debug file')
+
+    args = parser.parse_args()
+
+    image_file = os.path.abspath(args.image) if args.image else default_image
+    debug_file = os.path.abspath(args.debug)  if args.debug else None
+
+    if image_file :
+        if not os.path.isfile(image_file):
+            print(f"Error: Image file '{image_file}' does not exist or is not a file.", file=sys.stderr)
+            sys.exit(1)
+        if not os.access(image_file, os.R_OK):
+            print(f"Error: Image file '{image_file}' is not readable.", file=sys.stderr)
+            sys.exit(1)
+        print(f"Image file '{image_file}' is valid.")
+
+    return {"image": image_file, "debug": debug_file}
+
 
 if __name__ == '__main__':
-    main()
+
+    arguments = parse_arguments ()
+
+    conf["software"]["kernel"]["path"] = os.path.abspath(arguments["image"])
+    if arguments["debug"] :
+        conf["log_file"] = os.path.abspath(arguments["debug"])
+        conf["log_execution"] = True
+    else :
+        conf["log_execution"] = False
+
+    from armv8_platform import FullSystem
+    sys = FullSystem(conf)
+    sys.build(simulate=True,wait=True,silent=False,)
