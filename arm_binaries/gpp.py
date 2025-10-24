@@ -197,6 +197,127 @@ def parse_arguments() -> dict:
 
     return {"image": image_file, "debug": debug_file}
 
+def print_stats_table(data, *, path_sep="/", missing="–"):
+    """
+    Pretty-prints a nested-dict of segments as an ASCII table.
+    - Columns = top-level segments (e.g., 'globalLog', 'another', ...)
+    - Rows    = metric paths found anywhere under each segment
+               (e.g., 'cpu_0/executed_instructions', 'dcacheL1_0/hits', ...)
+
+    Values are expected to be either:
+      • dict (recurse), or
+      • tuples like (value, unit) where unit may be ''.
+
+    Parameters
+    ----------
+    data : dict
+        Top-level mapping: {segment_name: segment_dict, ...}
+    path_sep : str
+        Separator used when joining nested keys into a metric path.
+    missing : str
+        Placeholder for missing cells.
+
+    Notes
+    -----
+    - Preserves key order where possible (Python 3.7+ dicts keep insertion order).
+    - Formats tuple values as "value unit" (unit omitted if empty).
+    """
+    from math import isfinite
+
+    def _is_leaf(x):
+        return not isinstance(x, dict)
+
+    def _fmt_value(v):
+        if isinstance(v, tuple) and len(v) == 2:
+            val, unit = v
+            # format numbers nicely; leave others as-is
+            if isinstance(val, float):
+                # keep reasonable precision without trailing zeros
+                s = f"{val:.6g}"
+            else:
+                s = str(val)
+            return f"{s} {unit}".rstrip()
+        # Fallback: stringify
+        return str(v)
+
+    def _flatten(dct, prefix=""):
+        rows = []
+        for k, v in dct.items():
+            key = f"{prefix}{path_sep}{k}" if prefix else k
+            if isinstance(v, dict):
+                rows.extend(_flatten(v, key))
+            else:
+                rows.append((key, v))
+        return rows
+
+    # 1) Collect column names (segments) in insertion order
+    segments = list(data.keys())
+
+    # 2) For each segment, flatten to {metric_path: value}
+    seg_maps = []
+    for seg in segments:
+        segval = data.get(seg, {})
+        if isinstance(segval, dict):
+            flat = _flatten(segval)
+        else:
+            # if not a dict, treat the segment itself as a single leaf
+            flat = [(seg, segval)]
+        seg_maps.append({k: v for k, v in flat})
+
+    # 3) Compute unified ordered list of metric paths.
+    #    Start with the first segment's order, then append unseen keys from others in their order.
+    seen = set()
+    row_keys = []
+    for sm in seg_maps:
+        for k in sm.keys():
+            if k not in seen:
+                seen.add(k)
+                row_keys.append(k)
+
+    # 4) Build a 2D table: header + rows
+    header = ["Metric"] + segments
+
+    # Convert cell values to strings (formatted); fill missing
+    rows = []
+    for rk in row_keys:
+        row = [rk]
+        for sm in seg_maps:
+            val = sm.get(rk, None)
+            row.append(_fmt_value(val) if val is not None else missing)
+        rows.append(row)
+
+    # 5) Compute column widths
+    col_widths = [0] * len(header)
+    for ci, h in enumerate(header):
+        col_widths[ci] = max(col_widths[ci], len(h))
+    for r in rows:
+        for ci, cell in enumerate(r):
+            col_widths[ci] = max(col_widths[ci], len(str(cell)))
+
+    # 6) Helpers to render lines
+    def hline(ch="-", cross="+"):
+        parts = [cross]
+        for w in col_widths:
+            parts.append(ch * (w + 2))
+            parts.append(cross)
+        return "".join(parts)
+
+    def fmt_row(vals):
+        cells = []
+        for ci, v in enumerate(vals):
+            s = str(v)
+            pad = col_widths[ci] - len(s)
+            cells.append(f" {s}{' ' * pad} ")
+        return "|" + "|".join(cells) + "|"
+
+    # 7) Render table
+    print(hline("-","+") )
+    print(fmt_row(header))
+    print(hline("=","+") )
+    for r in rows:
+        print(fmt_row(r))
+    print(hline("-","+") )
+
 
 if __name__ == '__main__':
 
@@ -212,4 +333,6 @@ if __name__ == '__main__':
 
     from armv8_platform import FullSystem
     sys = FullSystem(conf)
-    sys.build(simulate=True,wait=True,silent=False,)
+    stats = sys.build(simulate=True,wait=True,silent=False,)
+    from pprint import pprint
+    print_stats_table(stats)
