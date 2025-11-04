@@ -1,2 +1,5 @@
 build/Makefile :
-	mkdir build && cd build && cmake ..
+	mkdir build -p && cd build && cmake ..
+
+all : build/Makefile
+	make -C build/
