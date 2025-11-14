@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vpsim source="python">
+<platform name="GPP_VP">
+	<ips>
+		<ModelProvider name="qemuslave">
+			<conversion_factor>3.0</conversion_factor>
+			<quantum>65535</quantum>
+			<roi_only>1</roi_only>
+			<domain>1</domain>
+			<path>@VPSIMLIBPATH@</path>
+			<io_poll_period>1000</io_poll_period>
+			<notify_main_memory_access>0</notify_main_memory_access>
+			<simulate_icache>0</simulate_icache>
+			<notify_ioaccess>0</notify_ioaccess>
+		</ModelProvider>
+		<ModelProviderParam2 name="ModelProviderParam20">
+			<domain>1</domain>
+			<option>--accel</option>
+			<value>tcg,thread=single</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam21">
+			<domain>1</domain>
+			<option>-icount</option>
+			<value>0</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam1 name="ModelProviderParam10">
+			<domain>1</domain>
+			<option>-nographic</option>
+			<provider>qemuslave</provider>
+		</ModelProviderParam1>
+		<ModelProviderParam2 name="ModelProviderParam22">
+			<domain>1</domain>
+			<option>-machine</option>
+			<value>qslave</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam23">
+			<domain>1</domain>
+			<option>-monitor</option>
+			<value>none</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam1 name="ModelProviderParam11">
+			<domain>1</domain>
+			<option>-semihosting</option>
+			<provider>qemuslave</provider>
+		</ModelProviderParam1>
+		<ModelProviderParam2 name="ModelProviderParam24">
+			<domain>1</domain>
+			<option>-d</option>
+			<value>mmu,in_asm,int,guest_errors</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam25">
+			<domain>1</domain>
+			<option>-D</option>
+			<value>@OUTPUT_FILE@</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam26">
+			<domain>1</domain>
+			<option>-smp</option>
+			<value>4</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam27">
+			<domain>1</domain>
+			<option>-cpu</option>
+			<value>max</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<Interconnect name="system_bus">
+			<domain>1</domain>
+			<latency>2000</latency>
+			<n_in_ports>4</n_in_ports>
+			<n_out_ports>2</n_out_ports>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<router_latency>0</router_latency>
+		</Interconnect>
+		<ModelProviderCpu name="cpu_0">
+			<domain>1</domain>
+			<model>max-arm-cpu</model>
+			<reset_pc>1073741824</reset_pc>
+			<provider>qemuslave</provider>
+			<id>0</id>
+			<quantum>1000</quantum>
+			<secure>0</secure>
+			<start_powered_off>0</start_powered_off>
+			<icache_size>65536</icache_size>
+			<icache_associativity>4</icache_associativity>
+			<icache_line_size>64</icache_line_size>
+		</ModelProviderCpu>
+		<ModelProviderCpu name="cpu_1">
+			<domain>1</domain>
+			<model>max-arm-cpu</model>
+			<reset_pc>1073741824</reset_pc>
+			<provider>qemuslave</provider>
+			<id>1</id>
+			<quantum>1000</quantum>
+			<secure>0</secure>
+			<start_powered_off>1</start_powered_off>
+			<icache_size>65536</icache_size>
+			<icache_associativity>4</icache_associativity>
+			<icache_line_size>64</icache_line_size>
+		</ModelProviderCpu>
+		<ModelProviderCpu name="cpu_2">
+			<domain>1</domain>
+			<model>max-arm-cpu</model>
+			<reset_pc>1073741824</reset_pc>
+			<provider>qemuslave</provider>
+			<id>2</id>
+			<quantum>1000</quantum>
+			<secure>0</secure>
+			<start_powered_off>1</start_powered_off>
+			<icache_size>65536</icache_size>
+			<icache_associativity>4</icache_associativity>
+			<icache_line_size>64</icache_line_size>
+		</ModelProviderCpu>
+		<ModelProviderCpu name="cpu_3">
+			<domain>1</domain>
+			<model>max-arm-cpu</model>
+			<reset_pc>1073741824</reset_pc>
+			<provider>qemuslave</provider>
+			<id>3</id>
+			<quantum>1000</quantum>
+			<secure>0</secure>
+			<start_powered_off>1</start_powered_off>
+			<icache_size>65536</icache_size>
+			<icache_associativity>4</icache_associativity>
+			<icache_line_size>64</icache_line_size>
+		</ModelProviderCpu>
+		<ModelProviderDev name="ModelProviderDev0">
+			<domain>1</domain>
+			<model>gicv3_dist</model>
+			<base_address>16842752</base_address>
+			<size>65536</size>
+			<irq>0</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderDev name="ModelProviderDev1">
+			<domain>1</domain>
+			<model>gicv3_redist</model>
+			<base_address>17301504</base_address>
+			<size>16777216</size>
+			<irq>4</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<Memory name="Memory0">
+			<latency_enable>1</latency_enable>
+			<domain>1</domain>
+			<size>4294967296</size>
+			<base_address>1073741824</base_address>
+			<cycle_duration>1000</cycle_duration>
+			<write_cycles>0</write_cycles>
+			<read_cycles>0</read_cycles>
+			<channel_width>8</channel_width>
+			<load_elf>0</load_elf>
+			<elf_file></elf_file>
+			<dmi_enable>1</dmi_enable>
+		</Memory>
+		<Monitor name="Monitor0">
+			<size>4</size>
+			<domain>1</domain>
+			<base_address>385875968</base_address>
+		</Monitor>
+		<ModelProviderParam2 name="ModelProviderParam28">
+			<domain>1</domain>
+			<option>-m</option>
+			<value>4096.0M</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam29">
+			<domain>1</domain>
+			<option>-serial</option>
+			<value>mon:stdio</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderDev name="uart0">
+			<domain>1</domain>
+			<model>pl011</model>
+			<base_address>150994944</base_address>
+			<size>4096</size>
+			<irq>11</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderDev name="ModelProviderDev2">
+			<domain>1</domain>
+			<model>pcie</model>
+			<base_address>268435456</base_address>
+			<size>0</size>
+			<irq>3</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderDev name="net0">
+			<domain>1</domain>
+			<model>virtio-mmio</model>
+			<base_address>169869312</base_address>
+			<size>4096</size>
+			<irq>42</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderParam2 name="ModelProviderParam210">
+			<domain>1</domain>
+			<option>-device</option>
+			<value>virtio-net-device,netdev=net0</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam211">
+			<domain>1</domain>
+			<option>-netdev</option>
+			<value>user,net=192.168.0.0/24,id=net0</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderDev name="ModelProviderDev3">
+			<domain>1</domain>
+			<model>pl031</model>
+			<base_address>184549376</base_address>
+			<size>4096</size>
+			<irq>44</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderParam2 name="ModelProviderParam212">
+			<domain>1</domain>
+			<option>-kernel</option>
+			<value>@ELF_FILE@</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+	</ips>
+	<links>
+		<link><from port="p5">system_bus</from><to port="p1">Memory0</to></link>
+		<link><from port="p6">system_bus</from><to port="p1">Monitor0</to></link>
+		<link><from port="p1">cpu_0</from><to port="p1">system_bus</to></link>
+		<link><from port="p1">cpu_1</from><to port="p2">system_bus</to></link>
+		<link><from port="p1">cpu_2</from><to port="p3">system_bus</to></link>
+		<link><from port="p1">cpu_3</from><to port="p4">system_bus</to></link>
+	</links>
+</platform>
+<simulation>
+<log>enable</log>
+</simulation>
+</vpsim>

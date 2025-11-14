@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-
+enable_testing()
 # Unfortunately some dependencies are not up to date.
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
@@ -47,17 +47,44 @@ set(VPSIM_SOURCE_DIR ${CMAKE_SOURCE_DIR}/vpsim-systemc)
 set(VPSIM_BINARY_DIR ${CMAKE_BINARY_DIR}/vpsim-build)
 
 add_subdirectory(${VPSIM_SOURCE_DIR} ${VPSIM_BINARY_DIR})
+# Define paths
+set(QEMU_OUTPUT "${INSTALL_RELEASE_DIR}/lib/qemu/vpsim-qemu.so")
+set(VPSIM_OUTPUT "${INSTALL_RELEASE_DIR}/bin/vpsim")
 
-# target to copy artifacts to release directory
-add_custom_target(copy_artifacts
-    COMMAND ${CMAKE_COMMAND} -E echo "Copying vpsim and qemu artifacts to release directory"
-    COMMAND ${CMAKE_COMMAND} -E copy ${QEMU_BINARY_DIR}/aarch64-softmmu/qemu-system-aarch64 ${INSTALL_RELEASE_DIR}/lib/qemu/vpsim-qemu.so
-    COMMAND ${CMAKE_COMMAND} -E copy ${VPSIM_BINARY_DIR}/vpsim ${INSTALL_RELEASE_DIR}/bin
-    DEPENDS qemu vpsim
+# Custom command to copy QEMU binary
+add_custom_command(
+    OUTPUT ${QEMU_OUTPUT}
+    COMMAND ${CMAKE_COMMAND} -E echo "Copying QEMU to release directory"
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${QEMU_BINARY_DIR}/aarch64-softmmu/qemu-system-aarch64
+            ${QEMU_OUTPUT}
+    DEPENDS qemu
+    COMMENT "Copying QEMU binary"
 )
 
-# Custom target to build everything and copy artifacts
+# Custom command to copy VPSim binary
+add_custom_command(
+    OUTPUT ${VPSIM_OUTPUT}
+    COMMAND ${CMAKE_COMMAND} -E echo "Copying VPSim to release directory"
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${VPSIM_BINARY_DIR}/vpsim
+            ${VPSIM_OUTPUT}
+    DEPENDS vpsim
+    COMMENT "Copying VPSim binary"
+)
+
+# Target that depends on these copied files
+add_custom_target(copy_artifacts ALL
+    DEPENDS ${QEMU_OUTPUT} ${VPSIM_OUTPUT}
+    COMMENT "Copied QEMU and VPSim artifacts to release directory"
+)
+
+
+# Optional: main target that builds everything
 add_custom_target(default ALL
     DEPENDS qemu vpsim copy_artifacts
-    COMMENT "Built QEMU, VPSim, and copying artifacts"
+    COMMENT "Built QEMU, VPSim, and copied artifacts"
 )
+
+
+add_subdirectory(tests)
