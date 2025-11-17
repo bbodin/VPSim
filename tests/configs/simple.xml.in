@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <vpsim source="python">
+
+<simulation>
+<log>enable</log>
+<workingDir>@WORKING_DIR@</workingDir>
+</simulation>
+
 <platform name="GPP_VP">
 	<ips>
 		<ModelProvider name="qemuslave">
@@ -163,6 +169,7 @@
 			<dmi_enable>1</dmi_enable>
 		</Memory>
 		<Monitor name="Monitor0">
+		  <log_directory>@LOG_DIRECTORY@</log_directory>
 			<size>4</size>
 			<domain>1</domain>
 			<base_address>385875968</base_address>
@@ -239,7 +246,4 @@
 		<link><from port="p1">cpu_3</from><to port="p4">system_bus</to></link>
 	</links>
 </platform>
-<simulation>
-<log>enable</log>
-</simulation>
 </vpsim>
