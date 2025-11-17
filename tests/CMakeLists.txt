@@ -45,7 +45,7 @@ foreach(XML_IN ${TEST_XMLS})
         set(OUTPUT_FILE "${CMAKE_BINARY_DIR}/results/${XML_BASE}_with_${ELF_BASE}.out")
 
         # Golden/reference file
-        set(GOLDEN_FILE "${CMAKE_SOURCE_DIR}/golden/${XML_BASE}_with_${ELF_BASE}.out")
+        set(GOLDEN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/golden/${XML_BASE}_with_${ELF_BASE}.out")
 
 
         set(ELF_FILE  ${ELF}) 
@@ -72,18 +72,24 @@ foreach(XML_IN ${TEST_XMLS})
         message(STATUS "Registering test: ${TESTNAME}")
         message(STATUS "  Command: ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}")
 
-        add_test(NAME ${TESTNAME}
-            
-            COMMAND  ${CMAKE_COMMAND} -E echo ${ABS_VPSIM_LOCATION} ${GENERATED_XML} &&
-            ${ABS_VPSIM_LOCATION} ${GENERATED_XML} &&
-            ${CMAKE_COMMAND} -E echo "Comparing output to golden file" &&
-            ${CMAKE_COMMAND} -E compare_files ${OUTPUT_FILE} ${GOLDEN_FILE}
+        add_custom_command(
+            OUTPUT ${OUTPUT_FILE}
+            COMMAND ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} || true
+            DEPENDS ${GENERATED_XML}
+            COMMENT "Generating ${OUTPUT_FILE} using simulator"
         )
+
+        add_test(
+         NAME ${TESTNAME}
+         COMMAND ${CMAKE_COMMAND} -E compare_files ${OUTPUT_FILE} ${GOLDEN_FILE}
+        )
+
+
 
         set_tests_properties(${TESTNAME} PROPERTIES
             ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
             TIMEOUT 40
-             DEPENDS copy_artifacts
+             DEPENDS  ${OUTPUT_FILE}
         )
 
         get_property(TESTS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY TESTS)

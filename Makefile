@@ -6,9 +6,7 @@ build/Makefile :
 vpsim-release/bin/vpsim vpsim-release/lib/qemu/vpsim-qemu.so : build/Makefile
 	make -C build/
 
-test :
-	ctest --test-dir ./build/vpsim-build/ -R vpsim[.] 
-	ctest --test-dir ./build/tests/ -R vpsim[.] 
-
+test : vpsim-release/bin/vpsim vpsim-release/lib/qemu/vpsim-qemu.so
+	ctest --test-dir ./build --tests-regex vpsim[.]
 clean:
 	rm -rf build/
