@@ -2,7 +2,7 @@
 <vpsim source="python">
 
 <simulation>
-<log>enable</log>
+<log>1</log>
 <workingDir>@WORKING_DIR@</workingDir>
 </simulation>
 
