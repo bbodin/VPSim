@@ -4,6 +4,7 @@
 <simulation>
 <log>1</log>
 <workingDir>@WORKING_DIR@</workingDir>
+<loggingDir>@LOG_DIRECTORY@</loggingDir>
 </simulation>
 
 <platform name="GPP_VP">
