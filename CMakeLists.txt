@@ -90,7 +90,7 @@ ExternalProject_Add(qemu
         --disable-libnfs                             # (old)
       # Networking
         --disable-l2tpv3
-        --disable-slirp
+      #  --disable-slirp # This completely remove networking haha
         --disable-netmap
       # Security / Crypto / System
         --disable-seccomp                          # (old)
