@@ -1,0 +1,287 @@
+----------------
+IN: 
+0x40000000:  d5034fdf  msr      daifset, #0xf
+
+----------------
+IN: 
+0x40000004:  580002a0  ldr      x0, #0x40000058
+0x40000008:  d518c000  msr      vbar_el1, x0
+
+----------------
+IN: 
+0x4000000c:  d5033fdf  isb      
+
+----------------
+IN: 
+0x40000010:  d53800a0  mrs      x0, mpidr_el1
+0x40000014:  92401c00  and      x0, x0, #0xff
+0x40000018:  58000241  ldr      x1, #0x40000060
+0x4000001c:  d2820002  movz     x2, #0x1000
+0x40000020:  91000403  add      x3, x0, #1
+0x40000024:  9b027c63  mul      x3, x3, x2
+0x40000028:  cb23603f  sub      sp, x1, x3
+0x4000002c:  94000079  bl       #0x40000210
+
+----------------
+IN: c_entry
+0x40000210:  a9be7bfd  stp      x29, x30, [sp, #-0x20]!
+0x40000214:  910003fd  mov      x29, sp
+0x40000218:  97ffffef  bl       #0x400001d4
+
+----------------
+IN: enable_fp_el1
+0x400001d4:  d5381040  mrs      x0, cpacr_el1
+0x400001d8:  b26c0400  orr      x0, x0, #0x300000
+0x400001dc:  d5181040  msr      cpacr_el1, x0
+
+----------------
+IN: enable_fp_el1
+0x400001e0:  d5033fdf  isb      
+
+----------------
+IN: enable_fp_el1
+0x400001e4:  d503201f  nop      
+0x400001e8:  d65f03c0  ret      
+
+----------------
+IN: c_entry
+0x4000021c:  97fffff4  bl       #0x400001ec
+
+----------------
+IN: enable_sve_el1
+0x400001ec:  d5381040  mrs      x0, cpacr_el1
+0x400001f0:  b2700400  orr      x0, x0, #0x30000
+0x400001f4:  d5181040  msr      cpacr_el1, x0
+
+----------------
+IN: enable_sve_el1
+0x400001f8:  d5033fdf  isb      
+
+----------------
+IN: enable_sve_el1
+0x400001fc:  d2800000  movz     x0, #0
+0x40000200:  d5181200  msr      s3_0_c1_c2_0, x0
+
+----------------
+IN: enable_sve_el1
+0x40000204:  d5033fdf  isb      
+
+----------------
+IN: enable_sve_el1
+0x40000208:  d503201f  nop      
+0x4000020c:  d65f03c0  ret      
+
+----------------
+IN: c_entry
+0x40000220:  52800140  movz     w0, #0xa
+0x40000224:  b9001fe0  str      w0, [sp, #0x1c]
+0x40000228:  b0000000  adrp     x0, #0x40001000
+0x4000022c:  fd401000  ldr      d0, [x0, #0x20]
+0x40000230:  fd000be0  str      d0, [sp, #0x10]
+0x40000234:  b0000000  adrp     x0, #0x40001000
+0x40000238:  91002000  add      x0, x0, #8
+0x4000023c:  97ffffd6  bl       #0x40000194
+
+----------------
+IN: sesam_start_bench_simple
+0x40000194:  a9be7bfd  stp      x29, x30, [sp, #-0x20]!
+0x40000198:  910003fd  mov      x29, sp
+0x4000019c:  f9000fe0  str      x0, [sp, #0x18]
+0x400001a0:  97ffffc2  bl       #0x400000a8
+
+----------------
+IN: sesam_reset_args
+0x400000a8:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x400000ac:  52800b01  movz     w1, #0x58
+0x400000b0:  39000001  strb     w1, [x0]
+0x400000b4:  d503201f  nop      
+0x400000b8:  d65f03c0  ret      
+
+----------------
+IN: sesam_reset_args
+0x400000b0:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_reset_args
+0x400000b4:  d503201f  nop      
+0x400000b8:  d65f03c0  ret      
+
+----------------
+IN: sesam_start_bench_simple
+0x400001a4:  f9400fe0  ldr      x0, [sp, #0x18]
+0x400001a8:  97ffffde  bl       #0x40000120
+
+----------------
+IN: sesam_push_string
+0x40000120:  d10083ff  sub      sp, sp, #0x20
+0x40000124:  f90007e0  str      x0, [sp, #8]
+0x40000128:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x4000012c:  52800c41  movz     w1, #0x62
+0x40000130:  39000001  strb     w1, [x0]
+0x40000134:  b9001fff  str      wzr, [sp, #0x1c]
+0x40000138:  1400000b  b        #0x40000164
+
+----------------
+IN: sesam_push_string
+0x40000130:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_push_string
+0x40000134:  b9001fff  str      wzr, [sp, #0x1c]
+0x40000138:  1400000b  b        #0x40000164
+
+----------------
+IN: sesam_push_string
+0x40000164:  b9801fe0  ldrsw    x0, [sp, #0x1c]
+0x40000168:  f94007e1  ldr      x1, [sp, #8]
+0x4000016c:  8b000020  add      x0, x1, x0
+0x40000170:  39400000  ldrb     w0, [x0]
+0x40000174:  7100001f  cmp      w0, #0
+0x40000178:  54fffe21  b.ne     #0x4000013c
+
+----------------
+IN: sesam_push_string
+0x4000013c:  b9801fe0  ldrsw    x0, [sp, #0x1c]
+0x40000140:  f94007e1  ldr      x1, [sp, #8]
+0x40000144:  8b000021  add      x1, x1, x0
+0x40000148:  d2800020  movz     x0, #0x1
+0x4000014c:  f2a2e000  movk     x0, #0x1700, lsl #16
+0x40000150:  39400021  ldrb     w1, [x1]
+0x40000154:  39000001  strb     w1, [x0]
+0x40000158:  b9401fe0  ldr      w0, [sp, #0x1c]
+0x4000015c:  11000400  add      w0, w0, #1
+0x40000160:  b9001fe0  str      w0, [sp, #0x1c]
+0x40000164:  b9801fe0  ldrsw    x0, [sp, #0x1c]
+0x40000168:  f94007e1  ldr      x1, [sp, #8]
+0x4000016c:  8b000020  add      x0, x1, x0
+0x40000170:  39400000  ldrb     w0, [x0]
+0x40000174:  7100001f  cmp      w0, #0
+0x40000178:  54fffe21  b.ne     #0x4000013c
+
+----------------
+IN: sesam_push_string
+0x40000154:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_push_string
+0x40000158:  b9401fe0  ldr      w0, [sp, #0x1c]
+0x4000015c:  11000400  add      w0, w0, #1
+0x40000160:  b9001fe0  str      w0, [sp, #0x1c]
+0x40000164:  b9801fe0  ldrsw    x0, [sp, #0x1c]
+0x40000168:  f94007e1  ldr      x1, [sp, #8]
+0x4000016c:  8b000020  add      x0, x1, x0
+0x40000170:  39400000  ldrb     w0, [x0]
+0x40000174:  7100001f  cmp      w0, #0
+0x40000178:  54fffe21  b.ne     #0x4000013c
+
+----------------
+IN: sesam_push_string
+0x4000017c:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x40000180:  52800e41  movz     w1, #0x72
+0x40000184:  39000001  strb     w1, [x0]
+0x40000188:  d503201f  nop      
+0x4000018c:  910083ff  add      sp, sp, #0x20
+0x40000190:  d65f03c0  ret      
+
+----------------
+IN: sesam_push_string
+0x40000184:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_push_string
+0x40000188:  d503201f  nop      
+0x4000018c:  910083ff  add      sp, sp, #0x20
+0x40000190:  d65f03c0  ret      
+
+----------------
+IN: sesam_start_bench_simple
+0x400001ac:  97ffffc9  bl       #0x400000d0
+
+----------------
+IN: sesam_start_benchmark
+0x400000d0:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x400000d4:  52800a41  movz     w1, #0x52
+0x400000d8:  39000001  strb     w1, [x0]
+0x400000dc:  d503201f  nop      
+0x400000e0:  d65f03c0  ret      
+
+----------------
+IN: sesam_start_benchmark
+0x400000d8:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_start_benchmark
+0x400000dc:  d503201f  nop      
+0x400000e0:  d65f03c0  ret      
+
+----------------
+IN: sesam_start_bench_simple
+0x400001b0:  d503201f  nop      
+0x400001b4:  a8c27bfd  ldp      x29, x30, [sp], #0x20
+0x400001b8:  d65f03c0  ret      
+
+----------------
+IN: c_entry
+0x40000240:  97ffffdf  bl       #0x400001bc
+
+----------------
+IN: sesam_end_bench_simple
+0x400001bc:  a9bf7bfd  stp      x29, x30, [sp, #-0x10]!
+0x400001c0:  910003fd  mov      x29, sp
+0x400001c4:  97ffffc8  bl       #0x400000e4
+
+----------------
+IN: sesam_end_benchmark
+0x400000e4:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x400000e8:  52800a81  movz     w1, #0x54
+0x400000ec:  39000001  strb     w1, [x0]
+0x400000f0:  d503201f  nop      
+0x400000f4:  d65f03c0  ret      
+
+----------------
+IN: sesam_end_benchmark
+0x400000ec:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_end_benchmark
+0x400000f0:  d503201f  nop      
+0x400000f4:  d65f03c0  ret      
+
+----------------
+IN: sesam_end_bench_simple
+0x400001c8:  d503201f  nop      
+0x400001cc:  a8c17bfd  ldp      x29, x30, [sp], #0x10
+0x400001d0:  d65f03c0  ret      
+
+----------------
+IN: c_entry
+0x40000244:  910073e0  add      x0, sp, #0x1c
+0x40000248:  aa0003e2  mov      x2, x0
+0x4000024c:  aa0003e3  mov      x3, x0
+0x40000250:  b0000000  adrp     x0, #0x40001000
+0x40000254:  91004000  add      x0, x0, #0x10
+0x40000258:  97ffffcf  bl       #0x40000194
+
+----------------
+IN: c_entry
+0x4000025c:  fd400be0  ldr      d0, [sp, #0x10]
+0x40000260:  1e602801  fadd     d1, d0, d0
+0x40000264:  1e600802  fmul     d2, d0, d0
+0x40000268:  97ffffd5  bl       #0x400001bc
+
+----------------
+IN: c_entry
+0x4000026c:  97ffffa8  bl       #0x4000010c
+
+----------------
+IN: sesam_quit
+0x4000010c:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x40000110:  52800841  movz     w1, #0x42
+0x40000114:  39000001  strb     w1, [x0]
+0x40000118:  d503201f  nop      
+0x4000011c:  d65f03c0  ret      
+
+----------------
+IN: sesam_quit
+0x40000114:  39000001  strb     w1, [x0]
+

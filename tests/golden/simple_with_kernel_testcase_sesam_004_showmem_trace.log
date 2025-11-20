@@ -1,0 +1,467 @@
+----------------
+IN: 
+0x40000000:  d5034fdf  msr      daifset, #0xf
+
+----------------
+IN: 
+0x40000004:  580002a0  ldr      x0, #0x40000058
+0x40000008:  d518c000  msr      vbar_el1, x0
+
+----------------
+IN: 
+0x4000000c:  d5033fdf  isb      
+
+----------------
+IN: 
+0x40000010:  d53800a0  mrs      x0, mpidr_el1
+0x40000014:  92401c00  and      x0, x0, #0xff
+0x40000018:  58000241  ldr      x1, #0x40000060
+0x4000001c:  d2820002  movz     x2, #0x1000
+0x40000020:  91000403  add      x3, x0, #1
+0x40000024:  9b027c63  mul      x3, x3, x2
+0x40000028:  cb23603f  sub      sp, x1, x3
+0x4000002c:  94000166  bl       #0x400005c4
+
+----------------
+IN: c_entry
+0x400005c4:  a9bf7bfd  stp      x29, x30, [sp, #-0x10]!
+0x400005c8:  910003fd  mov      x29, sp
+0x400005cc:  b0000000  adrp     x0, #0x40001000
+0x400005d0:  91014000  add      x0, x0, #0x50
+0x400005d4:  97ffff7e  bl       #0x400003cc
+
+----------------
+IN: printf_str
+0x400003cc:  a9be7bfd  stp      x29, x30, [sp, #-0x20]!
+0x400003d0:  910003fd  mov      x29, sp
+0x400003d4:  f9000fe0  str      x0, [sp, #0x18]
+0x400003d8:  f9400fe0  ldr      x0, [sp, #0x18]
+0x400003dc:  97ffff2b  bl       #0x40000088
+
+----------------
+IN: uart_send_string
+0x40000088:  a9be7bfd  stp      x29, x30, [sp, #-0x20]!
+0x4000008c:  910003fd  mov      x29, sp
+0x40000090:  f9000fe0  str      x0, [sp, #0x18]
+0x40000094:  14000006  b        #0x400000ac
+
+----------------
+IN: uart_send_string
+0x400000ac:  f9400fe0  ldr      x0, [sp, #0x18]
+0x400000b0:  39400000  ldrb     w0, [x0]
+0x400000b4:  7100001f  cmp      w0, #0
+0x400000b8:  54ffff01  b.ne     #0x40000098
+
+----------------
+IN: uart_send_string
+0x40000098:  f9400fe0  ldr      x0, [sp, #0x18]
+0x4000009c:  91000401  add      x1, x0, #1
+0x400000a0:  f9000fe1  str      x1, [sp, #0x18]
+0x400000a4:  39400000  ldrb     w0, [x0]
+0x400000a8:  97fffff0  bl       #0x40000068
+
+----------------
+IN: uart_send_char
+0x40000068:  d10043ff  sub      sp, sp, #0x10
+0x4000006c:  39003fe0  strb     w0, [sp, #0xf]
+0x40000070:  d2a12000  movz     x0, #0x900, lsl #16
+0x40000074:  39403fe1  ldrb     w1, [sp, #0xf]
+0x40000078:  b9000001  str      w1, [x0]
+0x4000007c:  d503201f  nop      
+0x40000080:  910043ff  add      sp, sp, #0x10
+0x40000084:  d65f03c0  ret      
+
+----------------
+IN: uart_send_char
+0x40000078:  b9000001  str      w1, [x0]
+
+----------------
+IN: uart_send_char
+0x4000007c:  d503201f  nop      
+0x40000080:  910043ff  add      sp, sp, #0x10
+0x40000084:  d65f03c0  ret      
+
+----------------
+IN: uart_send_string
+0x400000bc:  d503201f  nop      
+0x400000c0:  d503201f  nop      
+0x400000c4:  a8c27bfd  ldp      x29, x30, [sp], #0x20
+0x400000c8:  d65f03c0  ret      
+
+----------------
+IN: printf_str
+0x400003e0:  d503201f  nop      
+0x400003e4:  a8c27bfd  ldp      x29, x30, [sp], #0x20
+0x400003e8:  d65f03c0  ret      
+
+----------------
+IN: c_entry
+0x400005d8:  97ffffd6  bl       #0x40000530
+
+----------------
+IN: test_showmem
+0x40000530:  a9bc7bfd  stp      x29, x30, [sp, #-0x40]!
+0x40000534:  910003fd  mov      x29, sp
+0x40000538:  52961600  movz     w0, #0xb0b0
+0x4000053c:  72b61600  movk     w0, #0xb0b0, lsl #16
+0x40000540:  b9003fe0  str      w0, [sp, #0x3c]
+0x40000544:  9100a3e1  add      x1, sp, #0x28
+0x40000548:  9100f3e0  add      x0, sp, #0x3c
+0x4000054c:  97ffff71  bl       #0x40000310
+
+----------------
+IN: ptr_to_hex
+0x40000310:  d10103ff  sub      sp, sp, #0x40
+0x40000314:  f90007e0  str      x0, [sp, #8]
+0x40000318:  f90003e1  str      x1, [sp]
+0x4000031c:  f94007e0  ldr      x0, [sp, #8]
+0x40000320:  f9001fe0  str      x0, [sp, #0x38]
+0x40000324:  b0000000  adrp     x0, #0x40001000
+0x40000328:  91002000  add      x0, x0, #8
+0x4000032c:  910063e2  add      x2, sp, #0x18
+0x40000330:  aa0003e3  mov      x3, x0
+0x40000334:  a9400460  ldp      x0, x1, [x3]
+0x40000338:  a9000440  stp      x0, x1, [x2]
+0x4000033c:  39404060  ldrb     w0, [x3, #0x10]
+0x40000340:  39004040  strb     w0, [x2, #0x10]
+0x40000344:  f94003e0  ldr      x0, [sp]
+0x40000348:  52800601  movz     w1, #0x30
+0x4000034c:  39000001  strb     w1, [x0]
+0x40000350:  f94003e0  ldr      x0, [sp]
+0x40000354:  91000400  add      x0, x0, #1
+0x40000358:  52800f01  movz     w1, #0x78
+0x4000035c:  39000001  strb     w1, [x0]
+0x40000360:  f9001bff  str      xzr, [sp, #0x30]
+0x40000364:  14000011  b        #0x400003a8
+
+----------------
+IN: ptr_to_hex
+0x400003a8:  f9401be0  ldr      x0, [sp, #0x30]
+0x400003ac:  f1003c1f  cmp      x0, #0xf
+0x400003b0:  54fffdc9  b.ls     #0x40000368
+
+----------------
+IN: ptr_to_hex
+0x40000368:  f9401fe0  ldr      x0, [sp, #0x38]
+0x4000036c:  92400c01  and      x1, x0, #0xf
+0x40000370:  d2800222  movz     x2, #0x11
+0x40000374:  f9401be0  ldr      x0, [sp, #0x30]
+0x40000378:  cb000040  sub      x0, x2, x0
+0x4000037c:  f94003e2  ldr      x2, [sp]
+0x40000380:  8b000040  add      x0, x2, x0
+0x40000384:  910063e2  add      x2, sp, #0x18
+0x40000388:  38616841  ldrb     w1, [x2, x1]
+0x4000038c:  39000001  strb     w1, [x0]
+0x40000390:  f9401fe0  ldr      x0, [sp, #0x38]
+0x40000394:  d344fc00  lsr      x0, x0, #4
+0x40000398:  f9001fe0  str      x0, [sp, #0x38]
+0x4000039c:  f9401be0  ldr      x0, [sp, #0x30]
+0x400003a0:  91000400  add      x0, x0, #1
+0x400003a4:  f9001be0  str      x0, [sp, #0x30]
+0x400003a8:  f9401be0  ldr      x0, [sp, #0x30]
+0x400003ac:  f1003c1f  cmp      x0, #0xf
+0x400003b0:  54fffdc9  b.ls     #0x40000368
+
+----------------
+IN: ptr_to_hex
+0x400003b4:  f94003e0  ldr      x0, [sp]
+0x400003b8:  91004800  add      x0, x0, #0x12
+0x400003bc:  3900001f  strb     wzr, [x0]
+0x400003c0:  d503201f  nop      
+0x400003c4:  910103ff  add      sp, sp, #0x40
+0x400003c8:  d65f03c0  ret      
+
+----------------
+IN: test_showmem
+0x40000550:  910063e0  add      x0, sp, #0x18
+0x40000554:  aa0003e1  mov      x1, x0
+0x40000558:  52800080  movz     w0, #0x4
+0x4000055c:  97ffff27  bl       #0x400001f8
+
+----------------
+IN: itoa_dec
+0x400001f8:  d100c3ff  sub      sp, sp, #0x30
+0x400001fc:  b9000fe0  str      w0, [sp, #0xc]
+0x40000200:  f90003e1  str      x1, [sp]
+0x40000204:  b9002fff  str      wzr, [sp, #0x2c]
+0x40000208:  b9400fe0  ldr      w0, [sp, #0xc]
+0x4000020c:  7100001f  cmp      w0, #0
+0x40000210:  54000461  b.ne     #0x4000029c
+
+----------------
+IN: itoa_dec
+0x4000029c:  b9400fe0  ldr      w0, [sp, #0xc]
+0x400002a0:  7100001f  cmp      w0, #0
+0x400002a4:  54fffc61  b.ne     #0x40000230
+
+----------------
+IN: itoa_dec
+0x40000230:  b9400fe2  ldr      w2, [sp, #0xc]
+0x40000234:  529999a0  movz     w0, #0xcccd
+0x40000238:  72b99980  movk     w0, #0xcccc, lsl #16
+0x4000023c:  9ba07c40  umull    x0, w2, w0
+0x40000240:  d360fc00  lsr      x0, x0, #0x20
+0x40000244:  53037c01  lsr      w1, w0, #3
+0x40000248:  2a0103e0  mov      w0, w1
+0x4000024c:  531e7400  lsl      w0, w0, #2
+0x40000250:  0b010000  add      w0, w0, w1
+0x40000254:  531f7800  lsl      w0, w0, #1
+0x40000258:  4b000041  sub      w1, w2, w0
+0x4000025c:  12001c21  and      w1, w1, #0xff
+0x40000260:  b9402fe0  ldr      w0, [sp, #0x2c]
+0x40000264:  11000402  add      w2, w0, #1
+0x40000268:  b9002fe2  str      w2, [sp, #0x2c]
+0x4000026c:  1100c021  add      w1, w1, #0x30
+0x40000270:  12001c22  and      w2, w1, #0xff
+0x40000274:  93407c00  sxtw     x0, w0
+0x40000278:  910063e1  add      x1, sp, #0x18
+0x4000027c:  38206822  strb     w2, [x1, x0]
+0x40000280:  b9400fe1  ldr      w1, [sp, #0xc]
+0x40000284:  529999a0  movz     w0, #0xcccd
+0x40000288:  72b99980  movk     w0, #0xcccc, lsl #16
+0x4000028c:  9ba07c20  umull    x0, w1, w0
+0x40000290:  d360fc00  lsr      x0, x0, #0x20
+0x40000294:  53037c00  lsr      w0, w0, #3
+0x40000298:  b9000fe0  str      w0, [sp, #0xc]
+0x4000029c:  b9400fe0  ldr      w0, [sp, #0xc]
+0x400002a0:  7100001f  cmp      w0, #0
+0x400002a4:  54fffc61  b.ne     #0x40000230
+
+----------------
+IN: itoa_dec
+0x400002a8:  b9002bff  str      wzr, [sp, #0x28]
+0x400002ac:  1400000f  b        #0x400002e8
+
+----------------
+IN: itoa_dec
+0x400002e8:  b9402be1  ldr      w1, [sp, #0x28]
+0x400002ec:  b9402fe0  ldr      w0, [sp, #0x2c]
+0x400002f0:  6b00003f  cmp      w1, w0
+0x400002f4:  54fffdeb  b.lt     #0x400002b0
+
+----------------
+IN: itoa_dec
+0x400002b0:  b9402fe0  ldr      w0, [sp, #0x2c]
+0x400002b4:  51000401  sub      w1, w0, #1
+0x400002b8:  b9402be0  ldr      w0, [sp, #0x28]
+0x400002bc:  4b000022  sub      w2, w1, w0
+0x400002c0:  b9802be0  ldrsw    x0, [sp, #0x28]
+0x400002c4:  f94003e1  ldr      x1, [sp]
+0x400002c8:  8b000020  add      x0, x1, x0
+0x400002cc:  93407c41  sxtw     x1, w2
+0x400002d0:  910063e2  add      x2, sp, #0x18
+0x400002d4:  38616841  ldrb     w1, [x2, x1]
+0x400002d8:  39000001  strb     w1, [x0]
+0x400002dc:  b9402be0  ldr      w0, [sp, #0x28]
+0x400002e0:  11000400  add      w0, w0, #1
+0x400002e4:  b9002be0  str      w0, [sp, #0x28]
+0x400002e8:  b9402be1  ldr      w1, [sp, #0x28]
+0x400002ec:  b9402fe0  ldr      w0, [sp, #0x2c]
+0x400002f0:  6b00003f  cmp      w1, w0
+0x400002f4:  54fffdeb  b.lt     #0x400002b0
+
+----------------
+IN: itoa_dec
+0x400002f8:  b9802fe0  ldrsw    x0, [sp, #0x2c]
+0x400002fc:  f94003e1  ldr      x1, [sp]
+0x40000300:  8b000020  add      x0, x1, x0
+0x40000304:  3900001f  strb     wzr, [x0]
+0x40000308:  9100c3ff  add      sp, sp, #0x30
+0x4000030c:  d65f03c0  ret      
+
+----------------
+IN: test_showmem
+0x40000560:  b0000000  adrp     x0, #0x40001000
+0x40000564:  91008000  add      x0, x0, #0x20
+0x40000568:  97ffff99  bl       #0x400003cc
+
+----------------
+IN: test_showmem
+0x4000056c:  9100a3e0  add      x0, sp, #0x28
+0x40000570:  97ffff97  bl       #0x400003cc
+
+----------------
+IN: test_showmem
+0x40000574:  b0000000  adrp     x0, #0x40001000
+0x40000578:  9100e000  add      x0, x0, #0x38
+0x4000057c:  97ffff94  bl       #0x400003cc
+
+----------------
+IN: test_showmem
+0x40000580:  910063e0  add      x0, sp, #0x18
+0x40000584:  97ffff92  bl       #0x400003cc
+
+----------------
+IN: test_showmem
+0x40000588:  b0000000  adrp     x0, #0x40001000
+0x4000058c:  91010000  add      x0, x0, #0x40
+0x40000590:  97ffff8f  bl       #0x400003cc
+
+----------------
+IN: test_showmem
+0x40000594:  97fffece  bl       #0x400000cc
+
+----------------
+IN: sesam_reset_args
+0x400000cc:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x400000d0:  52800b01  movz     w1, #0x58
+0x400000d4:  39000001  strb     w1, [x0]
+0x400000d8:  d503201f  nop      
+0x400000dc:  d65f03c0  ret      
+
+----------------
+IN: sesam_reset_args
+0x400000d4:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_reset_args
+0x400000d8:  d503201f  nop      
+0x400000dc:  d65f03c0  ret      
+
+----------------
+IN: test_showmem
+0x40000598:  b0000000  adrp     x0, #0x40001000
+0x4000059c:  91012000  add      x0, x0, #0x48
+0x400005a0:  97fffee9  bl       #0x40000144
+
+----------------
+IN: sesam_push_string
+0x40000144:  d10083ff  sub      sp, sp, #0x20
+0x40000148:  f90007e0  str      x0, [sp, #8]
+0x4000014c:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x40000150:  52800c41  movz     w1, #0x62
+0x40000154:  39000001  strb     w1, [x0]
+0x40000158:  b9001fff  str      wzr, [sp, #0x1c]
+0x4000015c:  1400000b  b        #0x40000188
+
+----------------
+IN: sesam_push_string
+0x40000154:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_push_string
+0x40000158:  b9001fff  str      wzr, [sp, #0x1c]
+0x4000015c:  1400000b  b        #0x40000188
+
+----------------
+IN: sesam_push_string
+0x40000188:  b9801fe0  ldrsw    x0, [sp, #0x1c]
+0x4000018c:  f94007e1  ldr      x1, [sp, #8]
+0x40000190:  8b000020  add      x0, x1, x0
+0x40000194:  39400000  ldrb     w0, [x0]
+0x40000198:  7100001f  cmp      w0, #0
+0x4000019c:  54fffe21  b.ne     #0x40000160
+
+----------------
+IN: sesam_push_string
+0x40000160:  b9801fe0  ldrsw    x0, [sp, #0x1c]
+0x40000164:  f94007e1  ldr      x1, [sp, #8]
+0x40000168:  8b000021  add      x1, x1, x0
+0x4000016c:  d2800020  movz     x0, #0x1
+0x40000170:  f2a2e000  movk     x0, #0x1700, lsl #16
+0x40000174:  39400021  ldrb     w1, [x1]
+0x40000178:  39000001  strb     w1, [x0]
+0x4000017c:  b9401fe0  ldr      w0, [sp, #0x1c]
+0x40000180:  11000400  add      w0, w0, #1
+0x40000184:  b9001fe0  str      w0, [sp, #0x1c]
+0x40000188:  b9801fe0  ldrsw    x0, [sp, #0x1c]
+0x4000018c:  f94007e1  ldr      x1, [sp, #8]
+0x40000190:  8b000020  add      x0, x1, x0
+0x40000194:  39400000  ldrb     w0, [x0]
+0x40000198:  7100001f  cmp      w0, #0
+0x4000019c:  54fffe21  b.ne     #0x40000160
+
+----------------
+IN: sesam_push_string
+0x40000178:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_push_string
+0x4000017c:  b9401fe0  ldr      w0, [sp, #0x1c]
+0x40000180:  11000400  add      w0, w0, #1
+0x40000184:  b9001fe0  str      w0, [sp, #0x1c]
+0x40000188:  b9801fe0  ldrsw    x0, [sp, #0x1c]
+0x4000018c:  f94007e1  ldr      x1, [sp, #8]
+0x40000190:  8b000020  add      x0, x1, x0
+0x40000194:  39400000  ldrb     w0, [x0]
+0x40000198:  7100001f  cmp      w0, #0
+0x4000019c:  54fffe21  b.ne     #0x40000160
+
+----------------
+IN: sesam_push_string
+0x400001a0:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x400001a4:  52800e41  movz     w1, #0x72
+0x400001a8:  39000001  strb     w1, [x0]
+0x400001ac:  d503201f  nop      
+0x400001b0:  910083ff  add      sp, sp, #0x20
+0x400001b4:  d65f03c0  ret      
+
+----------------
+IN: sesam_push_string
+0x400001a8:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_push_string
+0x400001ac:  d503201f  nop      
+0x400001b0:  910083ff  add      sp, sp, #0x20
+0x400001b4:  d65f03c0  ret      
+
+----------------
+IN: test_showmem
+0x400005a4:  9100a3e0  add      x0, sp, #0x28
+0x400005a8:  97fffee7  bl       #0x40000144
+
+----------------
+IN: test_showmem
+0x400005ac:  910063e0  add      x0, sp, #0x18
+0x400005b0:  97fffee5  bl       #0x40000144
+
+----------------
+IN: test_showmem
+0x400005b4:  97fffecb  bl       #0x400000e0
+
+----------------
+IN: sesam_exec_params
+0x400000e0:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x400000e4:  52800f01  movz     w1, #0x78
+0x400000e8:  39000001  strb     w1, [x0]
+0x400000ec:  d503201f  nop      
+0x400000f0:  d65f03c0  ret      
+
+----------------
+IN: sesam_exec_params
+0x400000e8:  39000001  strb     w1, [x0]
+
+----------------
+IN: sesam_exec_params
+0x400000ec:  d503201f  nop      
+0x400000f0:  d65f03c0  ret      
+
+----------------
+IN: test_showmem
+0x400005b8:  d503201f  nop      
+0x400005bc:  a8c47bfd  ldp      x29, x30, [sp], #0x40
+0x400005c0:  d65f03c0  ret      
+
+----------------
+IN: c_entry
+0x400005dc:  b0000000  adrp     x0, #0x40001000
+0x400005e0:  91018000  add      x0, x0, #0x60
+0x400005e4:  97ffff7a  bl       #0x400003cc
+
+----------------
+IN: c_entry
+0x400005e8:  97fffed2  bl       #0x40000130
+
+----------------
+IN: sesam_quit
+0x40000130:  d2a2e000  movz     x0, #0x1700, lsl #16
+0x40000134:  52800841  movz     w1, #0x42
+0x40000138:  39000001  strb     w1, [x0]
+0x4000013c:  d503201f  nop      
+0x40000140:  d65f03c0  ret      
+
+----------------
+IN: sesam_quit
+0x40000138:  39000001  strb     w1, [x0]
+

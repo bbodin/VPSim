@@ -36,22 +36,21 @@ foreach(XML_IN ${TEST_XMLS})
         set(ABS_VPSIM_LOCATION "${VPSIM_OUTPUT}")
         set(ABS_QEMU_LOCATION "${QEMU_OUTPUT}")
         get_filename_component(ELF_BASE ${ELF} NAME_WE)
-        set(VPSIMLIBPATH  ${ABS_QEMU_LOCATION})
         message(STATUS "Absolute path to vpsim lib: ${VPSIMLIBPATH}")
         # Values for replacement (for configure_file)
         
-        # Generated output
-        file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/results")
-        set(OUTPUT_FILE "${CMAKE_BINARY_DIR}/results/${XML_BASE}_with_${ELF_BASE}.out")
+        # XML variables to replace
         set(LOG_DIRECTORY "${CMAKE_BINARY_DIR}/results/")
-        set(WORKING_DIR "${CMAKE_BINARY_DIR}/results/")
+        file(MAKE_DIRECTORY "${LOG_DIRECTORY}")
         
-
-        # Golden/reference file
-        set(GOLDEN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/golden/${XML_BASE}_with_${ELF_BASE}.out")
-
-
+        set(VPSIMLIBPATH  ${ABS_QEMU_LOCATION})
+        set(STATS_FILE "${LOG_DIRECTORY}/${XML_BASE}_with_${ELF_BASE}_stats.log")
+        set(TRACE_FILE "${LOG_DIRECTORY}/${XML_BASE}_with_${ELF_BASE}_trace.log")
+        set(GOLDEN_STATS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/golden/${XML_BASE}_with_${ELF_BASE}_stats.log")
+        set(GOLDEN_TRACE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/golden/${XML_BASE}_with_${ELF_BASE}_trace.log")
         set(ELF_FILE  ${ELF}) 
+
+        
 
         # Create directory for generated XML 
         file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated")
@@ -76,19 +75,31 @@ foreach(XML_IN ${TEST_XMLS})
         message(STATUS "  Command: ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}")
 
         add_test(
-         NAME ${TESTNAME}
-         COMMAND   ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} || true
-         #COMMAND ${CMAKE_COMMAND} -E remove -f ${OUTPUT_FILE} &&  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} || true && 
-         # ${CMAKE_COMMAND} -E compare_files ${OUTPUT_FILE} ${GOLDEN_FILE}
-        )
-
-
-
-        set_tests_properties(${TESTNAME} PROPERTIES
-            ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
-            TIMEOUT 40
+            NAME ${TESTNAME}_run
+            COMMAND /bin/sh -c 
+                    "${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}"
              DEPENDS ${GENERATED_XML}
+            ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
         )
+        add_test(
+            NAME ${TESTNAME}_trace
+            COMMAND /bin/sh -c 
+                    "rm -f ${TRACE_FILE} && ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} && cmp -s ${TRACE_FILE} ${GOLDEN_TRACE_FILE}"
+             DEPENDS ${GENERATED_XML}
+            ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
+        )
+        add_test(
+            NAME ${TESTNAME}_stats
+            COMMAND /bin/sh -c 
+                    "rm -f ${STATS_FILE} && ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} && cmp -s ${STATS_FILE} ${GOLDEN_STATS_FILE}"
+             DEPENDS ${GENERATED_XML}
+            ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
+        )
+
+
+
+
+
 
         get_property(TESTS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY TESTS)
         message(STATUS "Tests in this directory: ${TESTS}")

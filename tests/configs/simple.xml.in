@@ -2,9 +2,8 @@
 <vpsim source="python">
 
 <simulation>
-<log>1</log>
-<workingDir>@WORKING_DIR@</workingDir>
-<loggingDir>@LOG_DIRECTORY@</loggingDir>
+<log_level>1</log_level>
+<stats_file>@STATS_FILE@</stats_file>
 </simulation>
 
 <platform name="GPP_VP">
@@ -63,7 +62,7 @@
 		<ModelProviderParam2 name="ModelProviderParam25">
 			<domain>1</domain>
 			<option>-D</option>
-			<value>@OUTPUT_FILE@</value>
+			<value>@TRACE_FILE@</value>
 			<provider>qemuslave</provider>
 		</ModelProviderParam2>
 		<ModelProviderParam2 name="ModelProviderParam26">
