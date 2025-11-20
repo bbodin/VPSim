@@ -44,8 +44,10 @@ foreach(XML_IN ${TEST_XMLS})
         file(MAKE_DIRECTORY "${LOG_DIRECTORY}")
         
         set(VPSIMLIBPATH  ${ABS_QEMU_LOCATION})
+        set(RUN_FILE "${LOG_DIRECTORY}/${XML_BASE}_with_${ELF_BASE}_run.log")
         set(STATS_FILE "${LOG_DIRECTORY}/${XML_BASE}_with_${ELF_BASE}_stats.log")
         set(TRACE_FILE "${LOG_DIRECTORY}/${XML_BASE}_with_${ELF_BASE}_trace.log")
+        set(GOLDEN_RUN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/golden/${XML_BASE}_with_${ELF_BASE}_run.log")
         set(GOLDEN_STATS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/golden/${XML_BASE}_with_${ELF_BASE}_stats.log")
         set(GOLDEN_TRACE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/golden/${XML_BASE}_with_${ELF_BASE}_trace.log")
         set(ELF_FILE  ${ELF}) 
@@ -76,22 +78,22 @@ foreach(XML_IN ${TEST_XMLS})
 
         add_test(
             NAME ${TESTNAME}_run
-            COMMAND /bin/sh -c 
-                    "${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}"
+            COMMAND /bin/sh -c                                                                                       ### I skip the compare for now, filenames are a problem in the log
+                    "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1 ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} > ${RUN_FILE}" #  && cmp -s ${RUN_FILE} ${GOLDEN_RUN_FILE}
              DEPENDS ${GENERATED_XML}
             ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
         )
         add_test(
             NAME ${TESTNAME}_trace
             COMMAND /bin/sh -c 
-                    "rm -f ${TRACE_FILE} && ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} && cmp -s ${TRACE_FILE} ${GOLDEN_TRACE_FILE}"
+                    "rm -f ${TRACE_FILE} && SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} > /dev/null && cmp -s ${TRACE_FILE} ${GOLDEN_TRACE_FILE}"
              DEPENDS ${GENERATED_XML}
             ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
         )
         add_test(
             NAME ${TESTNAME}_stats
             COMMAND /bin/sh -c 
-                    "rm -f ${STATS_FILE} && ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} && cmp -s ${STATS_FILE} ${GOLDEN_STATS_FILE}"
+                    "rm -f ${STATS_FILE} && SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}  > /dev/null && cmp -s ${STATS_FILE} ${GOLDEN_STATS_FILE}"
              DEPENDS ${GENERATED_XML}
             ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
         )
