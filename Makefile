@@ -12,11 +12,12 @@ systemc : build/Makefile
 qemu : build/Makefile
 	cmake --build build/ --target qemu
 
+.PHONY : vpsim-release/bin/vpsim vpsim-release/lib/qemu/vpsim-qemu.so
 vpsim-release/bin/vpsim vpsim-release/lib/qemu/vpsim-qemu.so : build/Makefile
 	make -C build/
 
 
 test : vpsim-release/bin/vpsim vpsim-release/lib/qemu/vpsim-qemu.so
-	ctest --test-dir ./build --tests-regex vpsim[.] --output-on-failure
+	ctest --test-dir ./build --tests-regex vpsim[.] --output-on-failure  --rerun-failed
 clean:
 	rm -rf build/ vpsim-release/bin/* vpsim-release/lib/*

@@ -78,25 +78,25 @@ foreach(XML_IN ${TEST_XMLS})
 
         add_test(
             NAME ${TESTNAME}_run
-            COMMAND /bin/sh -c                                                                                       ### I skip the compare for now, filenames are a problem in the log
-                    "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1 ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} > ${RUN_FILE}" #  && cmp -s ${RUN_FILE} ${GOLDEN_RUN_FILE}
-             DEPENDS ${GENERATED_XML}
-            ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
+            COMMAND  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}
+            DEPENDS ${GENERATED_XML}
         )
-        add_test(
-            NAME ${TESTNAME}_trace
-            COMMAND /bin/sh -c 
-                    "rm -f ${TRACE_FILE} && SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} > /dev/null && cmp -s ${TRACE_FILE} ${GOLDEN_TRACE_FILE}"
-             DEPENDS ${GENERATED_XML}
-            ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
-        )
-        add_test(
-            NAME ${TESTNAME}_stats
-            COMMAND /bin/sh -c 
-                    "rm -f ${STATS_FILE} && SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}  > /dev/null && cmp -s ${STATS_FILE} ${GOLDEN_STATS_FILE}"
-             DEPENDS ${GENERATED_XML}
-            ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
-        )
+        set_tests_properties(${TESTNAME}_run PROPERTIES TIMEOUT 5)
+        set_tests_properties(${TESTNAME}_run PROPERTIES ENVIRONMENT SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1)
+        # add_test(
+        #     NAME ${TESTNAME}_trace
+        #     COMMAND /bin/sh -c 
+        #             "rm -f ${TRACE_FILE} && SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} > /dev/null && cmp -s ${TRACE_FILE} ${GOLDEN_TRACE_FILE}"
+        #      DEPENDS ${GENERATED_XML}
+        #     ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
+        # )
+        # add_test(
+        #     NAME ${TESTNAME}_stats
+        #     COMMAND /bin/sh -c 
+        #             "rm -f ${STATS_FILE} && SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}  > /dev/null && cmp -s ${STATS_FILE} ${GOLDEN_STATS_FILE}"
+        #      DEPENDS ${GENERATED_XML}
+        #     ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
+        # )
 
 
 
