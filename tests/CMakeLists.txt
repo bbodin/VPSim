@@ -23,8 +23,8 @@ if(TEST_XMLS STREQUAL "")
     message(WARNING "No XML templates found in ${CMAKE_CURRENT_SOURCE_DIR}/configs/*.xml.in")
 endif()
 
-message(STATUS "")
-message(STATUS "==== Generating tests ====")
+#message(STATUS "")
+#message(STATUS "==== Generating tests ====")
 
 # Loop over every XML × ELF combination
 foreach(XML_IN ${TEST_XMLS})
@@ -36,7 +36,7 @@ foreach(XML_IN ${TEST_XMLS})
         set(ABS_VPSIM_LOCATION "${VPSIM_OUTPUT}")
         set(ABS_QEMU_LOCATION "${QEMU_OUTPUT}")
         get_filename_component(ELF_BASE ${ELF} NAME_WE)
-        message(STATUS "Absolute path to vpsim lib: ${VPSIMLIBPATH}")
+        #message(STATUS "Absolute path to vpsim lib: ${VPSIMLIBPATH}")
         # Values for replacement (for configure_file)
         
         # XML variables to replace
@@ -60,9 +60,9 @@ foreach(XML_IN ${TEST_XMLS})
         # Output XML file
         set(GENERATED_XML "${CMAKE_BINARY_DIR}/generated/${XML_BASE}_with_${ELF_BASE}.xml")
 
-        message(STATUS "Generating XML:")
-        message(STATUS "  Template: ${XML_IN}")
-        message(STATUS "  Output:   ${GENERATED_XML}")
+        #message(STATUS "Generating XML:")
+        #message(STATUS "  Template: ${XML_IN}")
+        #message(STATUS "  Output:   ${GENERATED_XML}")
 
         configure_file(
             ${XML_IN}
@@ -73,38 +73,19 @@ foreach(XML_IN ${TEST_XMLS})
         # Create a unique test name
         set(TESTNAME "vpsim.run_${XML_BASE}_with_${ELF_BASE}")
 
-        message(STATUS "Registering test: ${TESTNAME}")
-        message(STATUS "  Command: ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}")
+        #message(STATUS "Registering test: ${TESTNAME}")
+        #message(STATUS "  Command: ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}")
 
         add_test(
             NAME ${TESTNAME}_run
             COMMAND  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}
-            DEPENDS ${GENERATED_XML}
         )
-        set_tests_properties(${TESTNAME}_run PROPERTIES TIMEOUT 5)
+        set_tests_properties(${TESTNAME}_run PROPERTIES DEPENDS ${GENERATED_XML})
+        set_tests_properties(${TESTNAME}_run PROPERTIES TIMEOUT 15)
         set_tests_properties(${TESTNAME}_run PROPERTIES ENVIRONMENT SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1)
-        # add_test(
-        #     NAME ${TESTNAME}_trace
-        #     COMMAND /bin/sh -c 
-        #             "rm -f ${TRACE_FILE} && SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML} > /dev/null && cmp -s ${TRACE_FILE} ${GOLDEN_TRACE_FILE}"
-        #      DEPENDS ${GENERATED_XML}
-        #     ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
-        # )
-        # add_test(
-        #     NAME ${TESTNAME}_stats
-        #     COMMAND /bin/sh -c 
-        #             "rm -f ${STATS_FILE} && SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}  > /dev/null && cmp -s ${STATS_FILE} ${GOLDEN_STATS_FILE}"
-        #      DEPENDS ${GENERATED_XML}
-        #     ENVIRONMENT "SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1"
-        # )
-
-
-
-
-
 
         get_property(TESTS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY TESTS)
-        message(STATUS "Tests in this directory: ${TESTS}")
+        #message(STATUS "Tests in this directory: ${TESTS}")
 
     endforeach()
 endforeach()

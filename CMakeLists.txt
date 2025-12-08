@@ -157,14 +157,14 @@ add_subdirectory(${VPSIM_SOURCE_DIR} ${VPSIM_BINARY_DIR})
 ##################################
 
 # Define paths
-set(INSTALL_RELEASE_DIR ${CMAKE_SOURCE_DIR}/vpsim-release)
-set(QEMU_OUTPUT "${INSTALL_RELEASE_DIR}/lib/qemu/vpsim-qemu.so")
-set(VPSIM_OUTPUT "${INSTALL_RELEASE_DIR}/bin/vpsim")
+set(OUTPUT_FOLDER "${CMAKE_BINARY_DIR}/vpsim-release/")
+set(QEMU_OUTPUT  "${OUTPUT_FOLDER}/lib/qemu/vpsim-qemu.so")
+set(VPSIM_OUTPUT "${OUTPUT_FOLDER}/bin/vpsim")
 
+MESSAGE(STATUS "VPSIM_OUTPUT IS ${VPSIM_OUTPUT}")
 # Custom command to copy QEMU binary
 add_custom_command(
     OUTPUT ${QEMU_OUTPUT}
-    COMMAND ${CMAKE_COMMAND} -E echo "Copying QEMU to release directory"
     COMMAND ${CMAKE_COMMAND} -E copy
             ${QEMU_BINARY_DIR}/aarch64-softmmu/qemu-system-aarch64
             ${QEMU_OUTPUT}
@@ -175,7 +175,6 @@ add_custom_command(
 # Custom command to copy VPSim binary
 add_custom_command(
     OUTPUT ${VPSIM_OUTPUT}
-    COMMAND ${CMAKE_COMMAND} -E echo "Copying VPSim to release directory"
     COMMAND ${CMAKE_COMMAND} -E copy
             ${VPSIM_BINARY_DIR}/vpsim
             ${VPSIM_OUTPUT}
@@ -183,18 +182,28 @@ add_custom_command(
     COMMENT "Copying VPSim binary"
 )
 
-# Target that depends on these copied files
-add_custom_target(copy_artifacts ALL
-    DEPENDS ${QEMU_OUTPUT} ${VPSIM_OUTPUT}
-    COMMENT "Copied QEMU and VPSim artifacts to release directory"
-)
+set(PYTHON_SRC_DIR  "${CMAKE_SOURCE_DIR}/vpsim-release/Python")
+set(PYTHON_DST_DIR  "${OUTPUT_FOLDER}/Python")
 
-
-# Optional: main target that builds everything
-add_custom_target(default ALL
-    DEPENDS qemu vpsim copy_artifacts
-    COMMENT "Built QEMU, VPSim, and copied artifacts"
+add_custom_target(link_python ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_FOLDER}"
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_SRC_DIR} ${PYTHON_DST_DIR}
+    COMMENT "Linking Python directory into build tree"
 )
 
 
 add_subdirectory(tests)
+
+# Optional: main target that builds everything
+add_custom_target(install_vpsim ALL
+    DEPENDS ${VPSIM_OUTPUT} link_python
+    COMMENT "Built QEMU, VPSim, and copied artifacts"
+)
+add_custom_target(install_qemu ALL
+    DEPENDS ${QEMU_OUTPUT} link_python
+    COMMENT "Built QEMU, VPSim, and copied artifacts"
+)
+add_custom_target(default ALL
+    DEPENDS ${QEMU_OUTPUT} ${VPSIM_OUTPUT} link_python
+    COMMENT "Built QEMU, VPSim, and copied artifacts"
+)

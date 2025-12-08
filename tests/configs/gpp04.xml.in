@@ -1,0 +1,918 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vpsim source="python">
+<simulation>
+<log_level>3</log_level>
+<stats_file>@STATS_FILE@</stats_file>
+</simulation>
+<platform name="GPP_4_USECASE">
+	<ips>
+		<ModelProvider name="qemuslave">
+			<conversion_factor>3.0</conversion_factor>
+			<quantum>65535</quantum>
+			<roi_only>1</roi_only>
+			<domain>1</domain>
+			<path>@VPSIMLIBPATH@</path>
+			<io_poll_period>1000</io_poll_period>
+			<notify_main_memory_access>1</notify_main_memory_access>
+			<simulate_icache>1</simulate_icache>
+			<notify_ioaccess>0</notify_ioaccess>
+		</ModelProvider>
+		<ModelProviderParam2 name="ModelProviderParam20">
+			<domain>1</domain>
+			<option>--accel</option>
+			<value>tcg,thread=single</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam21">
+			<domain>1</domain>
+			<option>-icount</option>
+			<value>0</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam1 name="ModelProviderParam10">
+			<domain>1</domain>
+			<option>-nographic</option>
+			<provider>qemuslave</provider>
+		</ModelProviderParam1>
+		<ModelProviderParam2 name="ModelProviderParam22">
+			<domain>1</domain>
+			<option>-machine</option>
+			<value>qslave</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam23">
+			<domain>1</domain>
+			<option>-monitor</option>
+			<value>none</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam1 name="ModelProviderParam11">
+			<domain>1</domain>
+			<option>-semihosting</option>
+			<provider>qemuslave</provider>
+		</ModelProviderParam1>
+		<ModelProviderParam2 name="ModelProviderParam24">
+			<domain>1</domain>
+			<option>-smp</option>
+			<value>4</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam25">
+			<domain>1</domain>
+			<option>-cpu</option>
+			<value>max</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<Interconnect name="system_bus">
+			<domain>1</domain>
+			<latency>2000</latency>
+			<n_in_ports>4</n_in_ports>
+			<n_out_ports>1</n_out_ports>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<router_latency>0</router_latency>
+		</Interconnect>
+		<ModelProviderCpu name="cpu_0">
+			<domain>1</domain>
+			<model>max-arm-cpu</model>
+			<reset_pc>1073741824</reset_pc>
+			<provider>qemuslave</provider>
+			<id>0</id>
+			<quantum>1000</quantum>
+			<secure>0</secure>
+			<start_powered_off>0</start_powered_off>
+			<icache_size>65536</icache_size>
+			<icache_associativity>4</icache_associativity>
+			<icache_line_size>64</icache_line_size>
+		</ModelProviderCpu>
+		<ModelProviderCpu name="cpu_1">
+			<domain>1</domain>
+			<model>max-arm-cpu</model>
+			<reset_pc>1073741824</reset_pc>
+			<provider>qemuslave</provider>
+			<id>1</id>
+			<quantum>1000</quantum>
+			<secure>0</secure>
+			<start_powered_off>1</start_powered_off>
+			<icache_size>65536</icache_size>
+			<icache_associativity>4</icache_associativity>
+			<icache_line_size>64</icache_line_size>
+		</ModelProviderCpu>
+		<ModelProviderCpu name="cpu_2">
+			<domain>1</domain>
+			<model>max-arm-cpu</model>
+			<reset_pc>1073741824</reset_pc>
+			<provider>qemuslave</provider>
+			<id>2</id>
+			<quantum>1000</quantum>
+			<secure>0</secure>
+			<start_powered_off>1</start_powered_off>
+			<icache_size>65536</icache_size>
+			<icache_associativity>4</icache_associativity>
+			<icache_line_size>64</icache_line_size>
+		</ModelProviderCpu>
+		<ModelProviderCpu name="cpu_3">
+			<domain>1</domain>
+			<model>max-arm-cpu</model>
+			<reset_pc>1073741824</reset_pc>
+			<provider>qemuslave</provider>
+			<id>3</id>
+			<quantum>1000</quantum>
+			<secure>0</secure>
+			<start_powered_off>1</start_powered_off>
+			<icache_size>65536</icache_size>
+			<icache_associativity>4</icache_associativity>
+			<icache_line_size>64</icache_line_size>
+		</ModelProviderCpu>
+		<ModelProviderDev name="ModelProviderDev0">
+			<domain>1</domain>
+			<model>gicv3_dist</model>
+			<base_address>16842752</base_address>
+			<size>65536</size>
+			<irq>0</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderDev name="ModelProviderDev1">
+			<domain>1</domain>
+			<model>gicv3_redist</model>
+			<base_address>17301504</base_address>
+			<size>16777216</size>
+			<irq>4</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<Memory name="Memory0">
+			<latency_enable>1</latency_enable>
+			<domain>1</domain>
+			<size>4294967296</size>
+			<base_address>1073741824</base_address>
+			<cycle_duration>1000</cycle_duration>
+			<write_cycles>1</write_cycles>
+			<read_cycles>20</read_cycles>
+			<channel_width>128</channel_width>
+			<load_elf>0</load_elf>
+			<elf_file></elf_file>
+			<dmi_enable>1</dmi_enable>
+		</Memory>
+		<SystemCCosim name="SystemCCosim0">
+			<roi_only>1</roi_only>
+			<domain>1</domain>
+			<n_out_ports>4</n_out_ports>
+		</SystemCCosim>
+		<CoherentInterconnect name="network_on_chip">
+			<latency_enable>1</latency_enable>
+			<memory_interleave_length>64</memory_interleave_length>
+			<slc_interleave_length>64</slc_interleave_length>
+			<domain>1</domain>
+			<latency>0</latency>
+			<n_cache_in>4</n_cache_in>
+			<n_cache_out>4</n_cache_out>
+			<n_home_in>4</n_home_in>
+			<n_home_out>4</n_home_out>
+			<n_mmapped>1</n_mmapped>
+			<n_device>0</n_device>
+			<flitSize>8</flitSize>
+			<memory_word_length>128</memory_word_length>
+			<is_coherent>1</is_coherent>
+			<is_mesh>1</is_mesh>
+			<mesh_x>2</mesh_x>
+			<mesh_y>2</mesh_y>
+			<with_contention>1</with_contention>
+			<contention_interval>10</contention_interval>
+			<buffer_size>1</buffer_size>
+			<virtual_channels>1</virtual_channels>
+			<router_latency>0.34</router_latency>
+			<link_latency>0.34</link_latency>
+			<noc_stats_per_initiator_on>0</noc_stats_per_initiator_on>
+		</CoherentInterconnect>
+		<CoherentInterconnect name="InterInstr_0">
+			<latency_enable>1</latency_enable>
+			<memory_interleave_length>0</memory_interleave_length>
+			<slc_interleave_length>0</slc_interleave_length>
+			<domain>1</domain>
+			<latency>0</latency>
+			<n_cache_in>1</n_cache_in>
+			<n_cache_out>0</n_cache_out>
+			<n_home_in>0</n_home_in>
+			<n_home_out>1</n_home_out>
+			<n_mmapped>0</n_mmapped>
+			<n_device>0</n_device>
+			<flitSize>0</flitSize>
+			<memory_word_length>0</memory_word_length>
+			<is_coherent>1</is_coherent>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<with_contention>0</with_contention>
+			<contention_interval>0</contention_interval>
+			<buffer_size>0</buffer_size>
+			<virtual_channels>0</virtual_channels>
+			<router_latency>0</router_latency>
+			<link_latency>0</link_latency>
+			<noc_stats_per_initiator_on>0</noc_stats_per_initiator_on>
+		</CoherentInterconnect>
+		<CoherentInterconnect name="InterData_0">
+			<latency_enable>1</latency_enable>
+			<memory_interleave_length>0</memory_interleave_length>
+			<slc_interleave_length>0</slc_interleave_length>
+			<domain>1</domain>
+			<latency>0</latency>
+			<n_cache_in>1</n_cache_in>
+			<n_cache_out>1</n_cache_out>
+			<n_home_in>1</n_home_in>
+			<n_home_out>1</n_home_out>
+			<n_mmapped>0</n_mmapped>
+			<n_device>0</n_device>
+			<flitSize>0</flitSize>
+			<memory_word_length>0</memory_word_length>
+			<is_coherent>1</is_coherent>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<with_contention>0</with_contention>
+			<contention_interval>0</contention_interval>
+			<buffer_size>0</buffer_size>
+			<virtual_channels>0</virtual_channels>
+			<router_latency>0</router_latency>
+			<link_latency>0</link_latency>
+			<noc_stats_per_initiator_on>0</noc_stats_per_initiator_on>
+		</CoherentInterconnect>
+		<Cache name="dcacheL1_0">
+			<home_base_address>0</home_base_address>
+			<home_size>0</home_size>
+			<inclusion_higher>NINE</inclusion_higher>
+			<inclusion_lower>NINE</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>0</l1i_simulate>
+			<nb_interleaved_caches>0</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>0</latency>
+			<size>65536</size>
+			<line_size>64</line_size>
+			<associativity>4</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>0</cpu>
+			<local>1</local>
+			<id>101</id>
+			<level>1</level>
+			<levels_number>3</levels_number>
+			<is_home>0</is_home>
+		</Cache>
+		<Cache name="dcacheL2_0">
+			<home_base_address>1073741824</home_base_address>
+			<home_size>4294967296</home_size>
+			<inclusion_higher>NINE</inclusion_higher>
+			<inclusion_lower>Exclusive</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>1</l1i_simulate>
+			<nb_interleaved_caches>0</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>4</latency>
+			<size>1048576</size>
+			<line_size>64</line_size>
+			<associativity>8</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>0</cpu>
+			<local>0</local>
+			<id>102</id>
+			<level>2</level>
+			<levels_number>3</levels_number>
+			<is_home>0</is_home>
+		</Cache>
+		<CacheIdController name="CacheIdController0">
+			<domain>1</domain>
+			<noc>network_on_chip</noc>
+			<cache>dcacheL2_0</cache>
+			<x_id>0</x_id>
+			<y_id>0</y_id>
+		</CacheIdController>
+		<CoherentInterconnect name="InterInstr_1">
+			<latency_enable>1</latency_enable>
+			<memory_interleave_length>0</memory_interleave_length>
+			<slc_interleave_length>0</slc_interleave_length>
+			<domain>1</domain>
+			<latency>0</latency>
+			<n_cache_in>1</n_cache_in>
+			<n_cache_out>0</n_cache_out>
+			<n_home_in>0</n_home_in>
+			<n_home_out>1</n_home_out>
+			<n_mmapped>0</n_mmapped>
+			<n_device>0</n_device>
+			<flitSize>0</flitSize>
+			<memory_word_length>0</memory_word_length>
+			<is_coherent>1</is_coherent>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<with_contention>0</with_contention>
+			<contention_interval>0</contention_interval>
+			<buffer_size>0</buffer_size>
+			<virtual_channels>0</virtual_channels>
+			<router_latency>0</router_latency>
+			<link_latency>0</link_latency>
+			<noc_stats_per_initiator_on>0</noc_stats_per_initiator_on>
+		</CoherentInterconnect>
+		<CoherentInterconnect name="InterData_1">
+			<latency_enable>1</latency_enable>
+			<memory_interleave_length>0</memory_interleave_length>
+			<slc_interleave_length>0</slc_interleave_length>
+			<domain>1</domain>
+			<latency>0</latency>
+			<n_cache_in>1</n_cache_in>
+			<n_cache_out>1</n_cache_out>
+			<n_home_in>1</n_home_in>
+			<n_home_out>1</n_home_out>
+			<n_mmapped>0</n_mmapped>
+			<n_device>0</n_device>
+			<flitSize>0</flitSize>
+			<memory_word_length>0</memory_word_length>
+			<is_coherent>1</is_coherent>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<with_contention>0</with_contention>
+			<contention_interval>0</contention_interval>
+			<buffer_size>0</buffer_size>
+			<virtual_channels>0</virtual_channels>
+			<router_latency>0</router_latency>
+			<link_latency>0</link_latency>
+			<noc_stats_per_initiator_on>0</noc_stats_per_initiator_on>
+		</CoherentInterconnect>
+		<Cache name="dcacheL1_1">
+			<home_base_address>0</home_base_address>
+			<home_size>0</home_size>
+			<inclusion_higher>NINE</inclusion_higher>
+			<inclusion_lower>NINE</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>0</l1i_simulate>
+			<nb_interleaved_caches>0</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>0</latency>
+			<size>65536</size>
+			<line_size>64</line_size>
+			<associativity>4</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>0</cpu>
+			<local>1</local>
+			<id>201</id>
+			<level>1</level>
+			<levels_number>3</levels_number>
+			<is_home>0</is_home>
+		</Cache>
+		<Cache name="dcacheL2_1">
+			<home_base_address>1073741824</home_base_address>
+			<home_size>4294967296</home_size>
+			<inclusion_higher>NINE</inclusion_higher>
+			<inclusion_lower>Exclusive</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>1</l1i_simulate>
+			<nb_interleaved_caches>0</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>4</latency>
+			<size>1048576</size>
+			<line_size>64</line_size>
+			<associativity>8</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>1</cpu>
+			<local>0</local>
+			<id>202</id>
+			<level>2</level>
+			<levels_number>3</levels_number>
+			<is_home>0</is_home>
+		</Cache>
+		<CacheIdController name="CacheIdController1">
+			<domain>1</domain>
+			<noc>network_on_chip</noc>
+			<cache>dcacheL2_1</cache>
+			<x_id>1</x_id>
+			<y_id>0</y_id>
+		</CacheIdController>
+		<CoherentInterconnect name="InterInstr_2">
+			<latency_enable>1</latency_enable>
+			<memory_interleave_length>0</memory_interleave_length>
+			<slc_interleave_length>0</slc_interleave_length>
+			<domain>1</domain>
+			<latency>0</latency>
+			<n_cache_in>1</n_cache_in>
+			<n_cache_out>0</n_cache_out>
+			<n_home_in>0</n_home_in>
+			<n_home_out>1</n_home_out>
+			<n_mmapped>0</n_mmapped>
+			<n_device>0</n_device>
+			<flitSize>0</flitSize>
+			<memory_word_length>0</memory_word_length>
+			<is_coherent>1</is_coherent>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<with_contention>0</with_contention>
+			<contention_interval>0</contention_interval>
+			<buffer_size>0</buffer_size>
+			<virtual_channels>0</virtual_channels>
+			<router_latency>0</router_latency>
+			<link_latency>0</link_latency>
+			<noc_stats_per_initiator_on>0</noc_stats_per_initiator_on>
+		</CoherentInterconnect>
+		<CoherentInterconnect name="InterData_2">
+			<latency_enable>1</latency_enable>
+			<memory_interleave_length>0</memory_interleave_length>
+			<slc_interleave_length>0</slc_interleave_length>
+			<domain>1</domain>
+			<latency>0</latency>
+			<n_cache_in>1</n_cache_in>
+			<n_cache_out>1</n_cache_out>
+			<n_home_in>1</n_home_in>
+			<n_home_out>1</n_home_out>
+			<n_mmapped>0</n_mmapped>
+			<n_device>0</n_device>
+			<flitSize>0</flitSize>
+			<memory_word_length>0</memory_word_length>
+			<is_coherent>1</is_coherent>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<with_contention>0</with_contention>
+			<contention_interval>0</contention_interval>
+			<buffer_size>0</buffer_size>
+			<virtual_channels>0</virtual_channels>
+			<router_latency>0</router_latency>
+			<link_latency>0</link_latency>
+			<noc_stats_per_initiator_on>0</noc_stats_per_initiator_on>
+		</CoherentInterconnect>
+		<Cache name="dcacheL1_2">
+			<home_base_address>0</home_base_address>
+			<home_size>0</home_size>
+			<inclusion_higher>NINE</inclusion_higher>
+			<inclusion_lower>NINE</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>0</l1i_simulate>
+			<nb_interleaved_caches>0</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>0</latency>
+			<size>65536</size>
+			<line_size>64</line_size>
+			<associativity>4</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>0</cpu>
+			<local>1</local>
+			<id>301</id>
+			<level>1</level>
+			<levels_number>3</levels_number>
+			<is_home>0</is_home>
+		</Cache>
+		<Cache name="dcacheL2_2">
+			<home_base_address>1073741824</home_base_address>
+			<home_size>4294967296</home_size>
+			<inclusion_higher>NINE</inclusion_higher>
+			<inclusion_lower>Exclusive</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>1</l1i_simulate>
+			<nb_interleaved_caches>0</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>4</latency>
+			<size>1048576</size>
+			<line_size>64</line_size>
+			<associativity>8</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>2</cpu>
+			<local>0</local>
+			<id>302</id>
+			<level>2</level>
+			<levels_number>3</levels_number>
+			<is_home>0</is_home>
+		</Cache>
+		<CacheIdController name="CacheIdController2">
+			<domain>1</domain>
+			<noc>network_on_chip</noc>
+			<cache>dcacheL2_2</cache>
+			<x_id>0</x_id>
+			<y_id>1</y_id>
+		</CacheIdController>
+		<CoherentInterconnect name="InterInstr_3">
+			<latency_enable>1</latency_enable>
+			<memory_interleave_length>0</memory_interleave_length>
+			<slc_interleave_length>0</slc_interleave_length>
+			<domain>1</domain>
+			<latency>0</latency>
+			<n_cache_in>1</n_cache_in>
+			<n_cache_out>0</n_cache_out>
+			<n_home_in>0</n_home_in>
+			<n_home_out>1</n_home_out>
+			<n_mmapped>0</n_mmapped>
+			<n_device>0</n_device>
+			<flitSize>0</flitSize>
+			<memory_word_length>0</memory_word_length>
+			<is_coherent>1</is_coherent>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<with_contention>0</with_contention>
+			<contention_interval>0</contention_interval>
+			<buffer_size>0</buffer_size>
+			<virtual_channels>0</virtual_channels>
+			<router_latency>0</router_latency>
+			<link_latency>0</link_latency>
+			<noc_stats_per_initiator_on>0</noc_stats_per_initiator_on>
+		</CoherentInterconnect>
+		<CoherentInterconnect name="InterData_3">
+			<latency_enable>1</latency_enable>
+			<memory_interleave_length>0</memory_interleave_length>
+			<slc_interleave_length>0</slc_interleave_length>
+			<domain>1</domain>
+			<latency>0</latency>
+			<n_cache_in>1</n_cache_in>
+			<n_cache_out>1</n_cache_out>
+			<n_home_in>1</n_home_in>
+			<n_home_out>1</n_home_out>
+			<n_mmapped>0</n_mmapped>
+			<n_device>0</n_device>
+			<flitSize>0</flitSize>
+			<memory_word_length>0</memory_word_length>
+			<is_coherent>1</is_coherent>
+			<is_mesh>0</is_mesh>
+			<mesh_x>0</mesh_x>
+			<mesh_y>0</mesh_y>
+			<with_contention>0</with_contention>
+			<contention_interval>0</contention_interval>
+			<buffer_size>0</buffer_size>
+			<virtual_channels>0</virtual_channels>
+			<router_latency>0</router_latency>
+			<link_latency>0</link_latency>
+			<noc_stats_per_initiator_on>0</noc_stats_per_initiator_on>
+		</CoherentInterconnect>
+		<Cache name="dcacheL1_3">
+			<home_base_address>0</home_base_address>
+			<home_size>0</home_size>
+			<inclusion_higher>NINE</inclusion_higher>
+			<inclusion_lower>NINE</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>0</l1i_simulate>
+			<nb_interleaved_caches>0</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>0</latency>
+			<size>65536</size>
+			<line_size>64</line_size>
+			<associativity>4</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>0</cpu>
+			<local>1</local>
+			<id>401</id>
+			<level>1</level>
+			<levels_number>3</levels_number>
+			<is_home>0</is_home>
+		</Cache>
+		<Cache name="dcacheL2_3">
+			<home_base_address>1073741824</home_base_address>
+			<home_size>4294967296</home_size>
+			<inclusion_higher>NINE</inclusion_higher>
+			<inclusion_lower>Exclusive</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>1</l1i_simulate>
+			<nb_interleaved_caches>0</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>4</latency>
+			<size>1048576</size>
+			<line_size>64</line_size>
+			<associativity>8</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>3</cpu>
+			<local>0</local>
+			<id>402</id>
+			<level>2</level>
+			<levels_number>3</levels_number>
+			<is_home>0</is_home>
+		</Cache>
+		<CacheIdController name="CacheIdController3">
+			<domain>1</domain>
+			<noc>network_on_chip</noc>
+			<cache>dcacheL2_3</cache>
+			<x_id>1</x_id>
+			<y_id>1</y_id>
+		</CacheIdController>
+		<Cache name="dcacheL3_0">
+			<home_base_address>1073741824</home_base_address>
+			<home_size>1073741824</home_size>
+			<inclusion_higher>Exclusive</inclusion_higher>
+			<inclusion_lower>NINE</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>0</l1i_simulate>
+			<nb_interleaved_caches>4</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>10</latency>
+			<size>2097152</size>
+			<line_size>64</line_size>
+			<associativity>16</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>0</cpu>
+			<local>0</local>
+			<id>103</id>
+			<level>3</level>
+			<levels_number>3</levels_number>
+			<is_home>1</is_home>
+		</Cache>
+		<CacheIdController name="CacheIdController4">
+			<domain>1</domain>
+			<noc>network_on_chip</noc>
+			<cache>dcacheL3_0</cache>
+			<x_id>0</x_id>
+			<y_id>0</y_id>
+		</CacheIdController>
+		<CacheController name="CacheController0">
+			<domain>1</domain>
+			<size>1073741824</size>
+			<base_address>1073741824</base_address>
+			<noc>network_on_chip</noc>
+			<x_id>0</x_id>
+			<y_id>0</y_id>
+		</CacheController>
+		<Cache name="dcacheL3_1">
+			<home_base_address>2147483648</home_base_address>
+			<home_size>1073741824</home_size>
+			<inclusion_higher>Exclusive</inclusion_higher>
+			<inclusion_lower>NINE</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>0</l1i_simulate>
+			<nb_interleaved_caches>4</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>10</latency>
+			<size>2097152</size>
+			<line_size>64</line_size>
+			<associativity>16</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>1</cpu>
+			<local>0</local>
+			<id>203</id>
+			<level>3</level>
+			<levels_number>3</levels_number>
+			<is_home>1</is_home>
+		</Cache>
+		<CacheIdController name="CacheIdController5">
+			<domain>1</domain>
+			<noc>network_on_chip</noc>
+			<cache>dcacheL3_1</cache>
+			<x_id>1</x_id>
+			<y_id>0</y_id>
+		</CacheIdController>
+		<CacheController name="CacheController1">
+			<domain>1</domain>
+			<size>1073741824</size>
+			<base_address>2147483648</base_address>
+			<noc>network_on_chip</noc>
+			<x_id>1</x_id>
+			<y_id>0</y_id>
+		</CacheController>
+		<Cache name="dcacheL3_2">
+			<home_base_address>3221225472</home_base_address>
+			<home_size>1073741824</home_size>
+			<inclusion_higher>Exclusive</inclusion_higher>
+			<inclusion_lower>NINE</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>0</l1i_simulate>
+			<nb_interleaved_caches>4</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>10</latency>
+			<size>2097152</size>
+			<line_size>64</line_size>
+			<associativity>16</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>2</cpu>
+			<local>0</local>
+			<id>303</id>
+			<level>3</level>
+			<levels_number>3</levels_number>
+			<is_home>1</is_home>
+		</Cache>
+		<CacheIdController name="CacheIdController6">
+			<domain>1</domain>
+			<noc>network_on_chip</noc>
+			<cache>dcacheL3_2</cache>
+			<x_id>0</x_id>
+			<y_id>1</y_id>
+		</CacheIdController>
+		<CacheController name="CacheController2">
+			<domain>1</domain>
+			<size>1073741824</size>
+			<base_address>3221225472</base_address>
+			<noc>network_on_chip</noc>
+			<x_id>0</x_id>
+			<y_id>1</y_id>
+		</CacheController>
+		<Cache name="dcacheL3_3">
+			<home_base_address>4294967296</home_base_address>
+			<home_size>1073741824</home_size>
+			<inclusion_higher>Exclusive</inclusion_higher>
+			<inclusion_lower>NINE</inclusion_lower>
+			<is_coherent>1</is_coherent>
+			<l1i_simulate>0</l1i_simulate>
+			<nb_interleaved_caches>4</nb_interleaved_caches>
+			<domain>1</domain>
+			<latency>10</latency>
+			<size>2097152</size>
+			<line_size>64</line_size>
+			<associativity>16</associativity>
+			<repl_policy>LRU</repl_policy>
+			<writing_policy>WBack</writing_policy>
+			<allocation_policy>WAllocate</allocation_policy>
+			<cpu>3</cpu>
+			<local>0</local>
+			<id>403</id>
+			<level>3</level>
+			<levels_number>3</levels_number>
+			<is_home>1</is_home>
+		</Cache>
+		<CacheIdController name="CacheIdController7">
+			<domain>1</domain>
+			<noc>network_on_chip</noc>
+			<cache>dcacheL3_3</cache>
+			<x_id>1</x_id>
+			<y_id>1</y_id>
+		</CacheIdController>
+		<CacheController name="CacheController3">
+			<domain>1</domain>
+			<size>1073741824</size>
+			<base_address>4294967296</base_address>
+			<noc>network_on_chip</noc>
+			<x_id>1</x_id>
+			<y_id>1</y_id>
+		</CacheController>
+		<NoCMemoryController name="NoCMemoryController0">
+			<domain>1</domain>
+			<size>2147483648</size>
+			<base_address>1073741824</base_address>
+			<noc>network_on_chip</noc>
+			<x_id>0</x_id>
+			<y_id>0</y_id>
+		</NoCMemoryController>
+		<NoCMemoryController name="NoCMemoryController1">
+			<domain>1</domain>
+			<size>2147483648</size>
+			<base_address>3221225472</base_address>
+			<noc>network_on_chip</noc>
+			<x_id>1</x_id>
+			<y_id>0</y_id>
+		</NoCMemoryController>
+		<Monitor name="Monitor0">
+			<log_directory>./</log_directory>
+			<size>4</size>
+			<domain>1</domain>
+			<base_address>385875968</base_address>
+		</Monitor>
+		<ModelProviderParam2 name="ModelProviderParam26">
+			<domain>1</domain>
+			<option>-m</option>
+			<value>4096.0M</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam27">
+			<domain>1</domain>
+			<option>-serial</option>
+			<value>mon:stdio</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderDev name="uart0">
+			<domain>1</domain>
+			<model>pl011</model>
+			<base_address>134217728</base_address>
+			<size>4096</size>
+			<irq>11</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderDev name="ModelProviderDev2">
+			<domain>1</domain>
+			<model>pcie</model>
+			<base_address>268435456</base_address>
+			<size>0</size>
+			<irq>3</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderDev name="net0">
+			<domain>1</domain>
+			<model>virtio-mmio</model>
+			<base_address>169869312</base_address>
+			<size>4096</size>
+			<irq>42</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderParam2 name="ModelProviderParam28">
+			<domain>1</domain>
+			<option>-device</option>
+			<value>virtio-net-device,netdev=net0</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam29">
+			<domain>1</domain>
+			<option>-netdev</option>
+			<value>user,net=192.168.0.0/24,id=net0</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderDev name="block0">
+			<domain>1</domain>
+			<model>virtio-mmio</model>
+			<base_address>168820736</base_address>
+			<size>4096</size>
+			<irq>40</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderParam2 name="ModelProviderParam210">
+			<domain>1</domain>
+			<option>-device</option>
+			<value>virtio-blk-device,drive=block0</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderParam2 name="ModelProviderParam211">
+			<domain>1</domain>
+			<option>-drive</option>
+			<value>file=/local2/is157416/bb284433/hal4sdv/vpsim/vpsim_v7/vpsim-release/GPP/disk_images/busybox.qcow2,id=block0</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+		<ModelProviderDev name="ModelProviderDev3">
+			<domain>1</domain>
+			<model>pl031</model>
+			<base_address>184549376</base_address>
+			<size>4096</size>
+			<irq>44</irq>
+			<provider>qemuslave</provider>
+		</ModelProviderDev>
+		<ModelProviderParam2 name="ModelProviderParam213">
+			<domain>1</domain>
+			<option>-kernel</option>
+			<value>@ELF_FILE@</value>
+			<provider>qemuslave</provider>
+		</ModelProviderParam2>
+	</ips>
+	<links>
+		<link><from port="p5">system_bus</from><to port="p1">Monitor0</to></link>
+		<link><from port="p1">cpu_0</from><to port="p1">system_bus</to></link>
+		<link><from port="p1">cpu_1</from><to port="p2">system_bus</to></link>
+		<link><from port="p1">cpu_2</from><to port="p3">system_bus</to></link>
+		<link><from port="p1">cpu_3</from><to port="p4">system_bus</to></link>
+		<link><from port="data_port_0">SystemCCosim0</from><to port="in_data">dcacheL1_0</to></link>
+		<link><from port="fetch_port_0">SystemCCosim0</from><to port="cache_in_0">InterInstr_0</to></link>
+		<link><from port="data_port_1">SystemCCosim0</from><to port="in_data">dcacheL1_1</to></link>
+		<link><from port="fetch_port_1">SystemCCosim0</from><to port="cache_in_0">InterInstr_1</to></link>
+		<link><from port="data_port_2">SystemCCosim0</from><to port="in_data">dcacheL1_2</to></link>
+		<link><from port="fetch_port_2">SystemCCosim0</from><to port="cache_in_0">InterInstr_2</to></link>
+		<link><from port="data_port_3">SystemCCosim0</from><to port="in_data">dcacheL1_3</to></link>
+		<link><from port="fetch_port_3">SystemCCosim0</from><to port="cache_in_0">InterInstr_3</to></link>
+		<link><from port="cache_out_0">network_on_chip</from><to port="in_invalidate">dcacheL2_0</to></link>
+		<link><from port="cache_out_1">network_on_chip</from><to port="in_invalidate">dcacheL2_1</to></link>
+		<link><from port="cache_out_2">network_on_chip</from><to port="in_invalidate">dcacheL2_2</to></link>
+		<link><from port="cache_out_3">network_on_chip</from><to port="in_invalidate">dcacheL2_3</to></link>
+		<link><from port="home_out_0">network_on_chip</from><to port="in_data">dcacheL3_0</to></link>
+		<link><from port="home_out_1">network_on_chip</from><to port="in_data">dcacheL3_1</to></link>
+		<link><from port="home_out_2">network_on_chip</from><to port="in_data">dcacheL3_2</to></link>
+		<link><from port="home_out_3">network_on_chip</from><to port="in_data">dcacheL3_3</to></link>
+		<link><from port="mmapped_out_0">network_on_chip</from><to port="p1">Memory0</to></link>
+		<link><from port="home_out_0">InterInstr_0</from><to port="in_instruction">dcacheL2_0</to></link>
+		<link><from port="cache_out_0">InterData_0</from><to port="in_invalidate">dcacheL1_0</to></link>
+		<link><from port="home_out_0">InterData_0</from><to port="in_data">dcacheL2_0</to></link>
+		<link><from port="out_data">dcacheL1_0</from><to port="cache_in_0">InterData_0</to></link>
+		<link><from port="out_invalidate">dcacheL2_0</from><to port="home_in_0">InterData_0</to></link>
+		<link><from port="out_data">dcacheL2_0</from><to port="cache_in_0">network_on_chip</to></link>
+		<link><from port="home_out_0">InterInstr_1</from><to port="in_instruction">dcacheL2_1</to></link>
+		<link><from port="cache_out_0">InterData_1</from><to port="in_invalidate">dcacheL1_1</to></link>
+		<link><from port="home_out_0">InterData_1</from><to port="in_data">dcacheL2_1</to></link>
+		<link><from port="out_data">dcacheL1_1</from><to port="cache_in_0">InterData_1</to></link>
+		<link><from port="out_invalidate">dcacheL2_1</from><to port="home_in_0">InterData_1</to></link>
+		<link><from port="out_data">dcacheL2_1</from><to port="cache_in_1">network_on_chip</to></link>
+		<link><from port="home_out_0">InterInstr_2</from><to port="in_instruction">dcacheL2_2</to></link>
+		<link><from port="cache_out_0">InterData_2</from><to port="in_invalidate">dcacheL1_2</to></link>
+		<link><from port="home_out_0">InterData_2</from><to port="in_data">dcacheL2_2</to></link>
+		<link><from port="out_data">dcacheL1_2</from><to port="cache_in_0">InterData_2</to></link>
+		<link><from port="out_invalidate">dcacheL2_2</from><to port="home_in_0">InterData_2</to></link>
+		<link><from port="out_data">dcacheL2_2</from><to port="cache_in_2">network_on_chip</to></link>
+		<link><from port="home_out_0">InterInstr_3</from><to port="in_instruction">dcacheL2_3</to></link>
+		<link><from port="cache_out_0">InterData_3</from><to port="in_invalidate">dcacheL1_3</to></link>
+		<link><from port="home_out_0">InterData_3</from><to port="in_data">dcacheL2_3</to></link>
+		<link><from port="out_data">dcacheL1_3</from><to port="cache_in_0">InterData_3</to></link>
+		<link><from port="out_invalidate">dcacheL2_3</from><to port="home_in_0">InterData_3</to></link>
+		<link><from port="out_data">dcacheL2_3</from><to port="cache_in_3">network_on_chip</to></link>
+		<link><from port="out_data">dcacheL3_0</from><to port="home_in_0">network_on_chip</to></link>
+		<link><from port="out_data">dcacheL3_1</from><to port="home_in_1">network_on_chip</to></link>
+		<link><from port="out_data">dcacheL3_2</from><to port="home_in_2">network_on_chip</to></link>
+		<link><from port="out_data">dcacheL3_3</from><to port="home_in_3">network_on_chip</to></link>
+	</links>
+</platform>
+</vpsim>

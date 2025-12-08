@@ -21,6 +21,7 @@ import os
 vpsim_home = os.environ.get("VPSIM_HOME")
 if not vpsim_home:
     raise EnvironmentError("Environment variable VPSIM_HOME is not set.")
+os.environ["VPSIM_PATH"] = f"{vpsim_home}/bin/vpsim"
 
 import sys
 sys.path.insert(0, f"{vpsim_home}/Python/Libs/")
@@ -28,15 +29,14 @@ sys.path.insert(0, f"{vpsim_home}/Python/Platforms/")
 
 from armv8_platform import FullSystem
 
-
 gpp_home = os.path.join(os.environ['VPSIM_HOME'], 'GPP')
 
 conf = {
-    'platform_name': 'GPP_USECASE',
+    'platform_name': 'GPP_4_USECASE',
     'device_tree_template': os.path.join(gpp_home, 'dt', 'gpp.dts.template'),
 
     'cpu': {
-        'cores': 32,
+        'cores': 4,
         'cores_per_cluster': 1,
         'gic': {
             'version': 3,
@@ -47,7 +47,10 @@ conf = {
         },
         'cpu_clusters': [
             # CPUs in cluster, NoC position (X,Y)
-            # Filled automatically hereafter (lines 180-191)
+            ([0], (0,0)),
+            ([1], (1,0)),
+            ([2], (0,1)),
+            ([3], (1,1)),
         ],
         'quantum': 65535,
         'conversion_factor': 3.0, # example: cpu_frequency = 3.0 GHz & IPC = 1
@@ -98,11 +101,9 @@ conf = {
 
     'software': {
        'mode': 'minimal',
-
        'dtb': {
            'path': os.path.join(gpp_home, 'dt', 'gpp.dtb'),
        },
-
        'kernel': {
            'path': os.path.join(gpp_home, 'linux', 'linux-6.1.44'),
            'bootargs': 'console=ttyAMA0 earlycon root=/dev/vda uio_pdrv_genirq.of_id=generic-uio ip=dhcp',
@@ -149,13 +150,16 @@ conf = {
 
                 'home-nodes': [
                     # Base address, size, NoC position (X,Y)
-                    # Filled automatically hereafter (lines 194-214)
+                    (0x40000000, 0x40000000, (0,0)),
+                    (0x80000000, 0x40000000, (1,0)),
+                    (0xc0000000, 0x40000000, (0,1)),
+                    (0x100000000,0x40000000, (1,1)),
                 ],
             },
         },
         'noc': {
-            'x-nodes': 6,
-            'y-nodes': 6,
+            'x-nodes': 2,
+            'y-nodes': 2,
             'diagnosis' : False,
             'with-contention' : True,
             'contention-interval-ns' : 10,
@@ -179,74 +183,23 @@ conf = {
             'channels': 8,
             'memory-controllers': [
                 # base address, size, noc position
-                (0x40000000, 0x40000000, (2,0)),
-                (0x80000000, 0x40000000, (3,0)),
-                (0xC0000000, 0x40000000, (2,5)),
-                (0x100000000, 0x40000000, (3,5)),
+                (0x40000000, 0x80000000, (0,0)),
+                (0xC0000000, 0x80000000, (1,0)),
             ],
         },
-        'IODevs': [
-            {
-                'name' : 'nvme0',
-                'x-pos': 0,
-                'y-pos': 1,
-            },
-            {
-                'name' : 'nvme1',
-                'x-pos': 0,
-                'y-pos': 2,
-            },
-        ],
     },
+
     'monitoring' : {
         'sesam_monitor_addr': 0x17000000,
         'sesam_monitor_log_directory' : "./",
         'gdb_port': None,
-        'vpsim_log_level' : 1, # This is the log level of VPSIM
-        'vpsim_stats_file' : "./gpp_use_case_stats.log", # This is the location of any vpsim log file
+        'vpsim_log_level' : 3, # This is the log level of VPSIM
+        'vpsim_stats_file' : None, # This is the location of any vpsim log file
         'qemu_execution_trace_file' : None # This is the location of the Qemu execution trace file
     }
 }
 
 if __name__ == '__main__':
-
-    # Filling the clusters
-    x_nodes = conf['memory_subsystem']['noc']['x-nodes']
-    y_nodes = conf['memory_subsystem']['noc']['y-nodes']
-    cpu_id = 0
-
-    for i in range(x_nodes):
-        for j in range(y_nodes):
-            if (i==0 and j==0) or (i==0 and j==5) or (i==5 and j==0) or (i==5
-                    and j==5):
-                continue
-            if cpu_id < conf['cpu']['cores']:
-                conf['cpu']['cpu_clusters'].append( ([cpu_id], (i, j)) )
-                cpu_id += 1
-
-    # Filling the home nodes
-    n_cores = conf['cpu']['cores']
-    hn_cores = 32
-    total_ram_size = conf['ram'][0]['size']
-    ram_base = conf['ram'][0]['base']
-    hn_addr = ram_base
-    hn_size = total_ram_size // hn_cores
-    hn_list = conf['memory_subsystem']['cache']['l3']['home-nodes']
-
-    for i in range(x_nodes):
-        for j in range(y_nodes):
-            if (i==0 and j==0) or (i==0 and j==5) or (i==5 and j==0) or (i==5
-                    and j==5):
-                continue
-            if total_ram_size >= hn_size:
-                hn_list.append( (hn_addr, hn_size, (i,j)) )
-                hn_addr += hn_size
-                total_ram_size -= hn_size
-
-    # assign remaining address slice to first HN
-    bs, sz, node = hn_list[-1]
-    hn_list[-1] = (bs, sz + total_ram_size, node)
-
     # Build the config
     sys = FullSystem(conf)
     # Run simulation
