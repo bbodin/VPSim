@@ -1,6 +1,6 @@
 RELEASE_DIR=./vpsim-release/
 
-.PHONY: release debug
+.PHONY: release release/vpsim-release/bin/vpsim release/vpsim-release/lib/qemu/vpsim-qemu.so debug debug/vpsim-release/bin/vpsim debug/vpsim-release/lib/qemu/vpsim-qemu.so
 release: release/vpsim-release/bin/vpsim release/vpsim-release/lib/qemu/vpsim-qemu.so
 debug: debug/vpsim-release/bin/vpsim debug/vpsim-release/lib/qemu/vpsim-qemu.so
 
@@ -23,4 +23,4 @@ test : debug/Makefile
 	ctest --test-dir ./debug --tests-regex vpsim[.]run_simple 
 
 clean:
-	rm -rf build/ debug/ release/ vpsim-release/bin/* vpsim-release/lib/*
+	rm -rf build/ debug/ release/ vpsim-release/bin/* vpsim-release/lib/qemu/vpsim-qemu.so
