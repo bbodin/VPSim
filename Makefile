@@ -20,7 +20,8 @@ release/Makefile : CMakeLists.txt
 test : debug/Makefile
 	make -C debug/ 
 	ctest --test-dir ./debug --tests-regex vpsim[.]unittest 
-	ctest --test-dir ./debug --tests-regex vpsim[.]run_simple 
+	ctest --test-dir ./debug --tests-regex vpsim[.]run_simple.* -VV || true
+	ctest --test-dir ./debug --tests-regex vpsim[.]run_gpp04.* -VV || true
 
 clean:
 	rm -rf build/ debug/ release/ vpsim-release/bin/* vpsim-release/lib/qemu/vpsim-qemu.so

@@ -774,7 +774,7 @@
 			<y_id>0</y_id>
 		</NoCMemoryController>
 		<Monitor name="Monitor0">
-			<log_directory>./</log_directory>
+			<log_directory>@LOG_DIRECTORY@</log_directory>
 			<size>4</size>
 			<domain>1</domain>
 			<base_address>385875968</base_address>
