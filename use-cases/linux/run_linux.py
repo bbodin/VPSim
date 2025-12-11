@@ -32,10 +32,6 @@ sys.path.insert(0, f"{vpsim_home}/Python/Libs/")
 sys.path.insert(0, f"{vpsim_home}/Python/Platforms/")
 
 
-
-
-gpp_home = os.path.join(os.environ['VPSIM_HOME'], 'GPP')
-
 def generate_conf(root, kernel, disk, outputdir, name) :
 
     local_conf = {
@@ -113,7 +109,7 @@ def generate_conf(root, kernel, disk, outputdir, name) :
             'path' :   root,
         },
         'dtb': {
-            'path': os.path.join(gpp_home, 'dt', 'gpp.dtb'),
+            'path': os.path.join(current_folder, 'gpp.dtb'),
         },
 
         'kernel': {

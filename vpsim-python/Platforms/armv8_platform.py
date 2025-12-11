@@ -21,7 +21,8 @@ from vpsim import SystemCCosim, IOAccessCosim, NoCDeviceController
 import getpass, os, math
 from datetime import datetime
 import threading
-import dt
+
+from dt import DevTree, c_arm64, c_virtio, c_memory, c_pl11_uart, c_pl031
 
 VPSIM_HOME = os.getenv('VPSIM_HOME')
 
@@ -55,7 +56,7 @@ class Armv8Cluster:
         ModelProviderParam1(provider=self.q.name, option='-semihosting')
 
         if 'device_tree_template' in conf :
-            self.dt = dt.DevTree(conf['platform_name'],conf['device_tree_template'])
+            self.dt = DevTree(conf['platform_name'],conf['device_tree_template'])
             assert(self.dt)
         else :
             print ("Warning no device tree, bare metal mode only.")
@@ -152,7 +153,7 @@ class Armv8Cluster:
             dt_conf[c] = conf['cpu']['gic'][c]
 
         if hasattr(self,"dt") :
-            dt.c_arm64(dt_conf, self.dt.getref())
+            c_arm64(dt_conf, self.dt.getref())
 
 class NodeCluster:
     '''
@@ -271,7 +272,7 @@ class FullSystem(System):
         sysbus = self.cluster.sysbus
         provider = self.cluster.q
         
-        if hasattr(self,"dt") :
+        if hasattr(self.cluster,"dt") :
             self.dt = self.cluster.dt
 
         # Create main memory
@@ -292,7 +293,7 @@ class FullSystem(System):
             self.ram.channels=1
             self.ram.channel_width=8
             if hasattr(self,"dt") :
-                dt.c_memory(ram,self.dt.getref())
+                c_memory(ram,self.dt.getref())
 
         # Instruction caches
         for core in self.cluster.cores:
@@ -461,7 +462,7 @@ class FullSystem(System):
                     interrupt_parent=provider.name,
                     irq_n=uart['irq'],
                     base_address=uart['base'])
-                dt.c_cadence_uart(uart, self.dt.getref())
+                c_cadence_uart(uart, self.dt.getref())
             elif typ == 'pl011':
                 '''ModelProviderParam2(provider=provider.name,
                     option='-chardev',
@@ -472,7 +473,7 @@ class FullSystem(System):
                     value='mon:stdio')
                     
                 if hasattr(self,"dt") :
-                    dt.c_pl11_uart(uart, self.dt.getref())
+                    c_pl11_uart(uart, self.dt.getref())
                 uart=ModelProviderDev(uart['name'],provider=provider.name,
                     model='pl011',
                     base_address=uart['base'],
@@ -500,7 +501,7 @@ class FullSystem(System):
                 irq=net['irq'])
 
             if hasattr(self,"dt") :
-                dt.c_virtio(net, self.dt.getref())
+                c_virtio(net, self.dt.getref())
 
             # if 'mac' not in net:
             #     net['mac']="54:54:00:12:34:58"
@@ -562,7 +563,7 @@ class FullSystem(System):
 
         if 'block' in conf:
             for b in conf['block']:
-                dt.c_virtio(b, self.dt.getref())
+                c_virtio(b, self.dt.getref())
                 block = ModelProviderDev(b['name'],
                     provider=provider.name,
                     model='virtio-mmio',
@@ -591,7 +592,7 @@ class FullSystem(System):
                     irq=cd['irq'])
 
                 cd['size']=0x1000
-                dt.c_virtio(cd, self.dt.getref())
+                c_virtio(cd, self.dt.getref())
 
                 ModelProviderParam2(provider=provider.name,
                         option='-device',
@@ -617,7 +618,7 @@ class FullSystem(System):
                 base_address=systemc['base'],
                 size=systemc['size'],
                 interrupt_parent=provider.name)
-            dt.c_systemc_output_port(systemc, self.dt.getref())
+            c_systemc_output_port(systemc, self.dt.getref())
 
         # Remote target subsystems
         if 'remote' in conf:
@@ -650,7 +651,7 @@ class FullSystem(System):
                     base_address=conf['fw_cfg_addr'],
                     size=0x18,
                     irq=0)
-            dt.c_fw_cfg({'base':conf['fw_cfg_addr']},self.dt.getref())
+            c_fw_cfg({'base':conf['fw_cfg_addr']},self.dt.getref())
 
         if 'rtc' in conf:
             ModelProviderDev(provider=provider.name,
@@ -661,7 +662,7 @@ class FullSystem(System):
             conf['rtc']['size']=0x1000
             
             if hasattr(self,"dt") :
-                dt.c_pl031(conf['rtc'], self.dt.getref())
+                c_pl031(conf['rtc'], self.dt.getref())
 
         if 'flash' in conf:
             for i,fl in enumerate(conf['flash']):

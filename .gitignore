@@ -6,3 +6,5 @@ build*
 /debug
 /release
 __pycache__
+use-cases/linux/gpp.dtb
+use-cases/linux/gpp.dts
