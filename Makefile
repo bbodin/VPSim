@@ -1,8 +1,12 @@
-RELEASE_DIR=./vpsim-release/
 
 .PHONY: release release/vpsim-release/bin/vpsim release/vpsim-release/lib/qemu/vpsim-qemu.so debug debug/vpsim-release/bin/vpsim debug/vpsim-release/lib/qemu/vpsim-qemu.so
+
 release: release/vpsim-release/bin/vpsim release/vpsim-release/lib/qemu/vpsim-qemu.so
 debug: debug/vpsim-release/bin/vpsim debug/vpsim-release/lib/qemu/vpsim-qemu.so
+
+all : debug/Makefile release/Makefile
+	make -C debug/
+	make -C release/
 
 
 debug/Makefile : CMakeLists.txt
@@ -19,9 +23,8 @@ release/Makefile : CMakeLists.txt
 
 test : debug/Makefile
 	make -C debug/ 
-	ctest --test-dir ./debug --tests-regex vpsim[.]unittest 
-	ctest --test-dir ./debug --tests-regex vpsim[.]run_simple.* -VV || true
-	ctest --test-dir ./debug --tests-regex vpsim[.]run_gpp04.* -VV || true
+	ctest --test-dir ./debug --tests-regex vpsim[.]unittest
+	ctest --test-dir ./debug --tests-regex "vpsim[.](run_simple.*|run_gpp04.*)" -VV 
 
 clean:
-	rm -rf build/ debug/ release/ vpsim-release/bin/* vpsim-release/lib/qemu/vpsim-qemu.so
+	rm -rf build/ debug/ release/ 

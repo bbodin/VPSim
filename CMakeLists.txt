@@ -182,7 +182,7 @@ add_custom_command(
     COMMENT "Copying VPSim binary"
 )
 
-set(PYTHON_SRC_DIR  "${CMAKE_SOURCE_DIR}/vpsim-python/Python")
+set(PYTHON_SRC_DIR  "${CMAKE_SOURCE_DIR}/vpsim-python")
 set(PYTHON_DST_DIR  "${OUTPUT_FOLDER}/Python")
 
 add_custom_target(link_python ALL

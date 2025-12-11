@@ -25,7 +25,6 @@ gpp_home = os.path.join(os.environ['VPSIM_HOME'], 'GPP')
 
 conf = {
     'platform_name': 'RUN_ELF_USECASE',
-    'device_tree_template': os.path.join(gpp_home, 'dt', 'gpp.dts.template'),
 
     'cpu': {
         'cores': 4,

@@ -56,6 +56,9 @@ class Armv8Cluster:
 
         if 'device_tree_template' in conf :
             self.dt = dt.DevTree(conf['platform_name'],conf['device_tree_template'])
+            assert(self.dt)
+        else :
+            print ("Warning no device tree, bare metal mode only.")
 
 
         if 'qemu_execution_trace_file' in conf["monitoring"] and conf["monitoring"]['qemu_execution_trace_file']:

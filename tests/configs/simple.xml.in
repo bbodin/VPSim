@@ -6,7 +6,7 @@
 <stats_file>@STATS_FILE@</stats_file>
 </simulation>
 
-<platform name="GPP_VP">
+<platform name="SIMPLE_NO_ROI">
 	<ips>
 		<ModelProvider name="qemuslave">
 			<conversion_factor>3.0</conversion_factor>

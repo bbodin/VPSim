@@ -19,8 +19,12 @@ limitations under the License.
 import os
 # Check if VPSIM_HOME is set
 vpsim_home = os.environ.get("VPSIM_HOME")
+current_folder = os.path.dirname(os.path.abspath(__file__))
+
 if not vpsim_home:
     raise EnvironmentError("Environment variable VPSIM_HOME is not set.")
+else :
+    print("VPSIM_HOME is ", vpsim_home)
 os.environ["VPSIM_PATH"] = f"{vpsim_home}/bin/vpsim"
 
 import sys
@@ -36,7 +40,7 @@ def generate_conf(root, kernel, disk, outputdir, name) :
 
     local_conf = {
         'platform_name': 'RUN_LINUX_USECASE',
-        'device_tree_template': os.path.join(gpp_home, 'dt', 'gpp.dts.template'),
+        'device_tree_template': os.path.join(current_folder, 'gpp.dts.template'),
 
         'cpu': {
             'cores': 4,
