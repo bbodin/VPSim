@@ -182,7 +182,7 @@ add_custom_command(
     COMMENT "Copying VPSim binary"
 )
 
-set(PYTHON_SRC_DIR  "${CMAKE_SOURCE_DIR}/vpsim-release/Python")
+set(PYTHON_SRC_DIR  "${CMAKE_SOURCE_DIR}/vpsim-python/Python")
 set(PYTHON_DST_DIR  "${OUTPUT_FOLDER}/Python")
 
 add_custom_target(link_python ALL
@@ -207,3 +207,10 @@ add_custom_target(default ALL
     DEPENDS ${QEMU_OUTPUT} ${VPSIM_OUTPUT} link_python
     COMMENT "Built QEMU, VPSim, and copied artifacts"
 )
+
+
+# manage the make install
+
+install(FILES ${VPSIM_OUTPUT} DESTINATION bin)
+install(FILES ${QEMU_OUTPUT} DESTINATION lib/vpsim)
+install(DIRECTORY ${PYTHON_SRC_DIR}/ DESTINATION share/vpsim/Python)
