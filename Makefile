@@ -1,5 +1,5 @@
 
-.PHONY: release release/vpsim-release/bin/vpsim release/vpsim-release/lib/qemu/vpsim-qemu.so debug debug/vpsim-release/bin/vpsim debug/vpsim-release/lib/qemu/vpsim-qemu.so
+.PHONY: release debug
 
 release: release/vpsim-release/bin/vpsim release/vpsim-release/lib/qemu/vpsim-qemu.so
 debug: debug/vpsim-release/bin/vpsim debug/vpsim-release/lib/qemu/vpsim-qemu.so
