@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from Armv8Cluster import Armv8Cluster
+from NodeCluster import NodeCluster
+
 from vpsim import System, Memory, Interconnect, ns, Param, BlobLoader, ElfLoader, SystemCTarget, RemoteTarget
 from vpsim import ModelProvider, ModelProviderCpu, ModelProviderDev, ModelProviderParam1, ModelProviderParam2
 from vpsim import PL011Uart, XuartPs, Monitor, PythonDevice, Cache, NoCMemoryController, CacheController, CacheIdController, CoherentInterconnect
@@ -24,245 +27,8 @@ import threading
 
 from dt import DevTree, c_arm64, c_virtio, c_memory, c_pl11_uart, c_pl031
 
-VPSIM_HOME = os.getenv('VPSIM_HOME')
-
-model_provider = {
-    'name': 'qemuslave',
-    'path': os.path.join(VPSIM_HOME,'lib','qemu','vpsim-qemu.so'),
-}
-
-class Armv8Cluster:
-    '''
-    Generate a self-contained ARM-v8 cluster with N cores, and a GIC.
-    '''
-    def __init__(self, conf):
-        # Load a QEMU into SESAM
-        self.q = ModelProvider(model_provider['name'])
-        self.q.path = model_provider['path']
-        self.q.io_poll_period=1000
-
-        if 'quantum' in conf['cpu']:
-            self.q.quantum = conf['cpu']['quantum']
-
-        if 'conversion_factor' in conf['cpu']:
-            self.q.conversion_factor = conf['cpu']['conversion_factor']
-
-        # Initialize QEMU
-        ModelProviderParam2(provider=self.q.name, option='--accel', value='tcg,thread=single')
-        ModelProviderParam2(provider=self.q.name, option='-icount', value='0')
-        ModelProviderParam1(provider=self.q.name, option='-nographic')
-        ModelProviderParam2(provider=self.q.name, option='-machine', value='qslave')
-        ModelProviderParam2(provider=self.q.name, option='-monitor', value='none')
-        ModelProviderParam1(provider=self.q.name, option='-semihosting')
-
-        if 'device_tree_template' in conf :
-            self.dt = DevTree(conf['platform_name'],conf['device_tree_template'])
-            assert(self.dt)
-        else :
-            print ("Warning no device tree, bare metal mode only.")
 
 
-        if 'qemu_execution_trace_file' in conf["monitoring"] and conf["monitoring"]['qemu_execution_trace_file']:
-            trace_file = conf["monitoring"]['qemu_execution_trace_file']
-            ModelProviderParam2(provider=self.q.name, option='-d', value='mmu,in_asm,int,guest_errors')
-            ModelProviderParam2(provider=self.q.name, option='-D', value=trace_file)
-
-        if conf["monitoring"]['gdb_port'] is not None:
-            ModelProviderParam1(provider=self.q.name, option='-S',)
-            ModelProviderParam2(provider=self.q.name, option='-gdb',
-                value='tcp::%s' % conf['gdb_port'])
-
-        n_cores = conf['cpu']['cores']
-        self.cores = []
-        ModelProviderParam2(provider=self.q.name,option='-smp',value=n_cores)
-        ModelProviderParam2(provider=self.q.name, option='-cpu', value='max')
-
-        # Initialize the interconnect in SESAM
-        self.sysbus = Interconnect('system_bus', n_in_ports=0,n_out_ports=0,latency=2*ns)
-
-        # Instantiate all CPUs within QEMU and connect them to sysbus
-        for i in range(n_cores):
-            cpu=ModelProviderCpu('cpu_%s'%i,model='max' + '-arm-cpu',id=i)
-            cpu.reset_pc = conf['software']['entry'] if conf['software']['mode']=='custom' else 0
-            cpu.secure = False
-            cpu.start_powered_off = (i > 0)
-            cpu.quantum = 1000 # actually fixed to 0xffff in QEMU
-            cpu.provider=self.q.name
-            self.cores.append(cpu)
-            self.sysbus.n_in_ports += 1
-            cpu >> self.sysbus
-
-        # Device tree
-        dt_conf = {
-            'cores': conf['cpu']['cores'],
-            'cores_per_cluster': conf['cpu']['cores_per_cluster'],
-            'cpu_clusters': conf['cpu']['cpu_clusters'],
-        }
-
-        # Initialize the GIC regions within QEMU
-        if conf['cpu']['gic']['version'] == 3:
-            gicv3_dist = ModelProviderDev( \
-                provider=self.q.name,
-                model='gicv3_dist',
-                base_address=conf['cpu']['gic']['distributor_base'],
-                size=conf['cpu']['gic']['distributor_size'],
-                irq=0)
-
-            gicv3_redist = ModelProviderDev( \
-                provider=self.q.name,
-                model='gicv3_redist',
-                base_address=conf['cpu']['gic']['redistributor_base'],
-                size=conf['cpu']['gic']['redistributor_size'],
-                irq=n_cores)
-
-            dt_conf['gic']='v3'
-        elif conf['cpu']['gic']['version'] == 2:
-            gicv2_dist = ModelProviderDev( \
-                provider=self.q.name,
-                model='gicv2_dist',
-                base_address=conf['cpu']['gic']['distributor_base'],
-                size=conf['cpu']['gic']['distributor_size'],
-                irq=0)
-
-            gicv2_cpu = ModelProviderDev( \
-                provider=self.q.name,
-                model='gicv2_cpu',
-                base_address=conf['cpu']['gic']['cpu_if_base'],
-                size=conf['cpu']['gic']['cpu_if_size'],
-                irq=0)
-
-            gicv2_hyp = ModelProviderDev( \
-                provider=self.q.name,
-                model='gicv2_hyp',
-                base_address=conf['cpu']['gic']['vctrl_base'],
-                size=conf['cpu']['gic']['vctrl_size'],
-                irq=0)
-
-            gicv2_vcpu = ModelProviderDev( \
-                provider=self.q.name,
-                model='gicv2_vcpu',
-                base_address=conf['cpu']['gic']['vcpu_base'],
-                size=conf['cpu']['gic']['vcpu_size'],
-                irq=0)
-
-            dt_conf['gic']='v2'
-        else:
-            Exception("Unknown GIC version (must be 2 or 3).")
-
-        for c in conf['cpu']['gic']:
-            dt_conf[c] = conf['cpu']['gic'][c]
-
-        if hasattr(self,"dt") :
-            c_arm64(dt_conf, self.dt.getref())
-
-class NodeCluster:
-    '''
-    Generate a self-contained cluster with cores, private L1, and L2.
-    '''
-    def __init__(self, conf, index):
-        self.clus_cores = conf['cpu']['cores_per_cluster']
-        # bus to connect L1 instrcution caches to L2
-        self.InterInst = CoherentInterconnect('InterInstr_%s'%index,
-                                              latency=0*ns,
-                                              n_cache_in=conf['cpu']['cores_per_cluster'],
-                                              n_cache_out=0,
-                                              n_home_in=0,
-                                              n_home_out=1,
-                                              n_mmapped=0,
-                                              n_device=0, #IOA
-                                              flitSize=0,
-                                              memory_word_length=0,
-                                              is_coherent=conf['memory_subsystem']['enable_coherence'],
-                                              is_mesh = False,
-                                              noc_stats_per_initiator_on = False,
-                                              mesh_x = 0,
-                                              mesh_y = 0,
-                                              with_contention = False,
-                                              router_latency = 0,
-                                              link_latency = 0,
-                                              contention_interval = 0,
-                                              buffer_size = 0,
-                                              virtual_channels = 0)
-
-        self.InterData = CoherentInterconnect('InterData_%s'%index,
-                                              latency=0*ns,
-                                              n_cache_in = conf['cpu']['cores_per_cluster'],
-                                              n_cache_out = conf['cpu']['cores_per_cluster'],
-                                              n_home_in=1,
-                                              n_home_out=1,
-                                              n_mmapped=0,
-                                              n_device=0, #IOA
-                                              flitSize=0,
-                                              memory_word_length=0,
-                                              is_coherent=conf['memory_subsystem']['enable_coherence'],
-                                              is_mesh = False,
-                                              noc_stats_per_initiator_on = False,
-                                              mesh_x = 0,
-                                              mesh_y = 0,
-                                              with_contention = False,
-                                              router_latency = 0,
-                                              link_latency = 0,
-                                              contention_interval = 0,
-                                              buffer_size = 0,
-                                              virtual_channels = 0)
-
-        # Create L1 caches
-        self.L1Caches = []
-        l1index = index*self.clus_cores
-        for i in range(self.clus_cores):
-            L1Cache = Cache('dcacheL1_%s'%l1index,
-                            latency=conf['memory_subsystem']['cache']['l1-data']['latency-ns'],
-                            size=conf['memory_subsystem']['cache']['l1-data']['size'], # bytes
-                            line_size=conf['memory_subsystem']['cache']['l1-data']['line-size'], # bytes
-                            associativity=conf['memory_subsystem']['cache']['l1-data']['associativity'],
-                            repl_policy='LRU',
-                            writing_policy='WBack',
-                            allocation_policy='WAllocate',
-                            local=True,
-                            id=1+100*(1+l1index),
-                            level=1,
-                            cpu=i,
-                            is_home=False)
-            # set optional parameters
-            L1Cache.is_coherent = conf['memory_subsystem']['enable_coherence']
-            L1Cache.levels_number   = 3
-            L1Cache.inclusion_lower = conf['memory_subsystem']['cache']['l2']['inclusion-l1']
-            self.L1Caches.append(L1Cache)
-            l1index += 1
-
-        # Create the L2 cache
-        self.L2Cache = Cache('dcacheL2_%s'%index,
-                        latency=conf['memory_subsystem']['cache']['l2']['latency-ns'],
-                        size=conf['memory_subsystem']['cache']['l2']['size'], # bytes
-                        line_size=conf['memory_subsystem']['cache']['l2']['line-size'], # bytes
-                        associativity=conf['memory_subsystem']['cache']['l2']['associativity'],
-                        repl_policy='LRU',
-                        writing_policy='WBack',
-                        allocation_policy='WAllocate',
-                        local=False,
-                        id=2+100*(1+index),
-                        level=2,
-                        cpu=index, # useless if local is false
-                        is_home=False)
-        self.L2Cache.home_base_address = conf['ram'][0]['base']
-        self.L2Cache.home_size = conf['ram'][0]['size']
-        # set optional parameters
-        self.L2Cache.l1i_simulate = True
-        self.L2Cache.is_coherent = conf['memory_subsystem']['enable_coherence']
-        self.L2Cache.levels_number    = 3
-        self.L2Cache.inclusion_higher = conf['memory_subsystem']['cache']['l2']['inclusion-l1']
-        self.L2Cache.inclusion_lower  = conf['memory_subsystem']['cache']['l3']['inclusion-l2']
-
-        # connections inside a cluster
-        for i in range(self.clus_cores):
-            # connect L1 data caches to data interconnect
-            self.L1Caches[i]("out_data") >> self.InterData("cache_in_%s"%i)
-            self.InterData("cache_out_%s"%i) >> self.L1Caches[i]("in_invalidate")
-            # connection to L1 instruction caches via InterInst("cache_in_%s"%i) in caller class
-        # connect L2 caches to interconnects
-        self.InterInst("home_out_0") >> self.L2Cache("in_instruction")
-        self.InterData("home_out_0") >> self.L2Cache("in_data")
-        self.L2Cache("out_invalidate") >> self.InterData("home_in_0")
 
 class FullSystem(System):
     ''' Generate the full system '''
@@ -747,3 +513,178 @@ class FullSystem(System):
 
     def getSystemBus(self):
         return self.sysbus
+
+
+gpp_home = os.path.abspath(os.path.dirname(__file__) + "/../../use-cases/GPP")
+conf = {
+    'platform_name': 'GPP_4_USECASE',
+    'device_tree_template': os.path.join(gpp_home, 'dt', 'gpp.dts.template'),
+
+    'cpu': {
+        'cores': 4,
+        'cores_per_cluster': 1,
+        'gic': {
+            'version': 3,
+            'distributor_base': 0x1010000,
+            'distributor_size': 0x10000,
+            'redistributor_base': 0x1080000,
+            'redistributor_size': 0x1000000,
+        },
+        'cpu_clusters': [
+            # CPUs in cluster, NoC position (X,Y)
+            ([0], (0,0)),
+            ([1], (1,0)),
+            ([2], (0,1)),
+            ([3], (1,1)),
+        ],
+        'quantum': 65535,
+        'conversion_factor': 3.0, # example: cpu_frequency = 3.0 GHz & IPC = 1
+    },
+
+    'ram': [
+        {
+            'base':   0x40000000,
+            'size':  0x100000000
+        }
+    ],
+
+    'uarts': [
+        {
+            'type': 'pl011',
+            'name': 'uart0',
+            'base': 0x08000000,
+            'irq': 11
+        }
+    ],
+
+    'block': [
+        {
+           'name': 'block0',
+           'base': 0xa100000,
+           'size': 0x1000,
+           'irq': 40,
+           'image': os.path.join(gpp_home, 'disk_images', "busybox.qcow2"),
+        },
+    ],
+
+    'net': [
+        {
+            'name': 'net0',
+            'base': 0xa200000,
+            'size': 0x1000,
+            'irq': 42,
+            'ip': '192.168.0.0/24',
+            #'hostfwd_ssh_port': 2222, # Decomment this to Host-forward Port to access VM via SSH.
+        },
+    ],
+
+    'rtc': {
+        'base': 0xb000000,
+        'size': 0x1000,
+        'irq': 44
+    },
+
+    'software': {
+       'mode': 'minimal',
+       'dtb': {
+           'path': os.path.join(gpp_home, 'dt', 'gpp.dtb'),
+       },
+       'kernel': {
+           'path': os.path.join(gpp_home, 'linux', 'linux-6.1.44'),
+           'bootargs': 'console=ttyAMA0 earlycon root=/dev/vda uio_pdrv_genirq.of_id=generic-uio ip=dhcp',
+       },
+
+       'entry': None # Set this to entry PC when in custom mode.
+    },
+
+    'memory_subsystem': {
+        'simulate': True,
+        'focus_on_roi': True,
+        'enable_coherence': True,
+        'cache': {
+            'l1-data': {
+                'size': 64*1024, # Bytes
+                'line-size': 64, # Bytes
+                'associativity': 4,
+                'latency-ns': 0,
+            },
+            'l1-instructions': {
+                'size': 64*1024, # Bytes
+                'line-size': 64, # Bytes
+                'associativity': 4,
+                'latency-ns': 0,
+            },
+            'l2': {
+                'size': 1024*1024, # Bytes
+                'line-size': 64, # Bytes
+                'associativity': 8,
+                'latency-ns': 4, # f = 1.5 GHz
+                'inclusion-l1': 'NINE', # Can be Exclusive, Inclusive, or NINE
+            },
+            'l3': {
+                'line-size': 64, # Bytes
+                'associativity': 16, # Bytes
+                'latency-ns': 10,
+                'home-node-size': 2048*1024,
+                'inclusion-l2': 'Exclusive', # Can be Exclusive, Inclusive, or NINE
+
+                # SLC interleaving is enabled by default
+                # L3 cache line size is the default interleaving step
+                # interleave_step = 0 will disable SLC interleaving
+                'interleave_step' : 64,
+
+                'home-nodes': [
+                    # Base address, size, NoC position (X,Y)
+                    (0x40000000, 0x40000000, (0,0)),
+                    (0x80000000, 0x40000000, (1,0)),
+                    (0xc0000000, 0x40000000, (0,1)),
+                    (0x100000000,0x40000000, (1,1)),
+                ],
+            },
+        },
+        'noc': {
+            'x-nodes': 2,
+            'y-nodes': 2,
+            'diagnosis' : False,
+            'with-contention' : True,
+            'contention-interval-ns' : 10,
+            'buffer-size-flits' : 1,
+            'flit-size': 8,
+            'router-latency-ns': 0.34,
+            'link-latency-ns': 0.34,
+            'virtual-channels' : 1,
+        },
+        'off-chip-memory': {
+            'read-latency-ns': 20,
+            'write-latency-ns': 1,
+
+            # Memory interleaving is enabled by default
+            # The default memory interleave step is equal to L3 line size
+            # interleave_step = 0 will disable Memory interleaving
+            'interleave_step' : 64,
+
+            # For now we only support the same width for all memories
+            'channel-width': 16, # bytes
+            'channels': 8,
+            'memory-controllers': [
+                # base address, size, noc position
+                (0x40000000, 0x80000000, (0,0)),
+                (0xC0000000, 0x80000000, (1,0)),
+            ],
+        },
+    },
+
+    'monitoring' : {
+        'sesam_monitor_addr': 0x17000000,
+        'sesam_monitor_log_directory' : "./",
+        'gdb_port': None,
+        'vpsim_log_level' : 3, # This is the log level of VPSIM
+        'vpsim_stats_file' : None, # This is the location of any vpsim log file
+        'qemu_execution_trace_file' : None # This is the location of the Qemu execution trace file
+    }
+}
+
+if __name__ == "__main__" :
+    print ("Self-test of the architecture:")
+    FullSystem(conf)
+    print ("Done.")
