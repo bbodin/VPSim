@@ -125,7 +125,8 @@ _ve=os.getenv("VPSIM_PATH")
 if not _ve:
     raise Exception("Please put the path to VPSim in the $VPSIM_PATH environment variable.")
 
-os.chdir(os.path.split(_ve)[0])
+## We avoid this here
+# os.chdir(os.path.split(_ve)[0])
 
 _all_known_sys=[]
 _autn={}
@@ -327,6 +328,8 @@ class System:
     def __simulate(self, bs, silent, outstream, timeout_sec=None):
         dateTime = datetime.now().isoformat(timespec='seconds')
         working_dir='.%s%s--%s' % (self.name, dateTime, threading.current_thread().ident)
+        # I moved it here, not a big fan though...
+        os.chdir(os.path.split(_ve)[0])
         os.makedirs(working_dir,exist_ok=True)
         with open(os.path.join(os.path.split(_ve)[0], working_dir,'tmp.xml'),'w') as tmp:
             for t in bs:
