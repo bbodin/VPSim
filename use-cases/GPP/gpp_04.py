@@ -29,7 +29,7 @@ sys.path.insert(0, f"{vpsim_home}/Python/Platforms/")
 
 from armv8_platform import FullSystem
 
-gpp_home = os.path.join(os.environ['VPSIM_HOME'], 'GPP')
+gpp_home = os.path.join(os.path.dirname(__file__), "..", 'GPP')
 
 conf = {
     'platform_name': 'GPP_4_USECASE',

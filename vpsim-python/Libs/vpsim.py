@@ -331,6 +331,7 @@ class System:
         # I moved it here, not a big fan though...
         os.chdir(os.path.split(_ve)[0])
         os.makedirs(working_dir,exist_ok=True)
+        print (f"working dir is {os.path.abspath(working_dir)}")
         with open(os.path.join(os.path.split(_ve)[0], working_dir,'tmp.xml'),'w') as tmp:
             for t in bs:
                 tmp.write(t+'\n')
