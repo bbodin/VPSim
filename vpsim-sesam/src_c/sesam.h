@@ -64,6 +64,21 @@ static inline void sesam_push_string(const char *str) {
     *((uint8_t *)sesam_mem) = SESAMOP_END_PARAM;
 }
 
+int sesam_collect_output(char *buffer, int max_len) {
+    int i = 0;
+
+    while (i < max_len - 1) {
+        char c = *((uint8_t *)sesam_mem+1);
+        if (c == 0)
+            break;
+        buffer[i++] = c;
+    }
+
+    buffer[i] = '\0';
+    return i;// number of chars read
+}
+
+
 static inline void sesam_snapshot(const char *name) {
     sesam_reset_args();
     sesam_push_string("snapshot");
