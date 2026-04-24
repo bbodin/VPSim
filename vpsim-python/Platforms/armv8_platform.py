@@ -514,3 +514,327 @@ class FullSystem(System):
     def getSystemBus(self):
         return self.sysbus
 
+
+class SimpleSystem(System):
+
+    def __init__(self, conf):
+        super().__init__(conf['platform_name'])
+
+        self.smp = conf["cpu"]["cores"]
+
+        self.cpus = []
+        self.icache = []
+        self.dcache = []
+        self.cosim_il1 = []
+
+        qemu_lib = conf["cpu"]["qemu_lib"]
+        trace_file = conf["software"]["trace_file"]
+        kernel_image = conf["software"]["kernel"]["path"]
+
+        # ================= QEMU =================
+        ModelProvider(
+            "qemuslave",
+            conversion_factor=conf["cpu"]["conversion_factor"],
+            quantum=conf["cpu"]["quantum"],
+            roi_only=conf["cpu"].get("roi_only", 1),
+            domain=1,
+            path=qemu_lib,
+            io_poll_period=conf["cpu"].get("io_poll_period", 1000),
+            notify_main_memory_access=conf["cpu"].get("notify_main_memory_access", 1),
+            simulate_icache=1,
+            notify_ioaccess=conf["cpu"].get("notify_ioaccess", 0),
+            qemu_parameters=f"""
+            --accel tcg,thread=single
+            -icount 0
+            -nographic
+            -machine qslave
+            -monitor none
+            -semihosting
+            -serial mon:stdio
+            -d mmu,in_asm,int,guest_errors
+            -D {trace_file}
+            -device virtio-net-device,netdev=net0
+            -netdev user,net=192.168.0.0/24,id=net0
+            -smp {self.smp}
+            -cpu max
+            -m 4096.0M
+            -kernel {kernel_image}
+            """
+        )
+
+        # ================= DEVICES =================
+        for name, dev in conf["devices"].items():
+            ModelProviderDev(
+                name,
+                domain=1,
+                model=dev["model"],
+                base_address=dev["base"],
+                size=dev["size"],
+                irq=dev["irq"],
+                provider="qemuslave"
+            )
+
+        # ---- GIC from config ----
+        ModelProviderDev(
+            "gic_dist",
+            domain=1,
+            model="gicv3_dist",
+            base_address=conf["gic"]["distributor_base"],
+            size=conf["gic"].get("distributor_size", 65536),
+            irq=conf["gic"]["irq_base"],
+            provider="qemuslave"
+        )
+
+        ModelProviderDev(
+            "gic_redist",
+            domain=1,
+            model="gicv3_redist",
+            base_address=conf["gic"]["redistributor_base"],
+            size=conf["gic"].get("redistributor_size", 16777216),
+            irq=self.smp,
+            provider="qemuslave"
+        )
+
+        # ================= CPUs + L1 =================
+        for i in range(self.smp):
+
+            cpu = ModelProviderCpu(
+                f"cpu_{i}",
+                domain=1,
+                model="max-arm-cpu",
+                reset_pc=conf["cpu"]["reset_pc"],
+                provider="qemuslave",
+                id=i,
+                quantum=conf["cpu"]["quantum"],
+                secure=0, 
+                start_powered_off=0,
+                icache_size=conf["cache"]["l1i"]["size"],
+                icache_associativity=conf["cache"]["l1i"]["associativity"],
+                icache_line_size=conf["cache"]["l1i"]["line-size"]
+            )
+            self.cpus.append(cpu)
+
+            # ---- L1I ----
+            ic = Cache(
+                f"icacheL1_{i}",
+                domain=1,
+                size=conf["cache"]["l1i"]["size"],
+                latency=conf["cache"]["l1i"]["latency-ns"],
+                line_size=conf["cache"]["l1i"]["line-size"],
+                associativity=conf["cache"]["l1i"]["associativity"],
+                repl_policy=conf["cache"]["l1i"].get("repl_policy", "LRU"),
+                writing_policy=conf["cache"]["l1i"].get("writing_policy", "WBack"),
+                allocation_policy=conf["cache"]["l1i"].get("allocation_policy", "WAllocate"),
+                cpu=i,
+                local=1,
+                id=100 + i,
+                level=1,
+                levels_number=1,
+                is_home=0,
+                is_coherent=1,
+                inclusion_higher="NINE",
+                inclusion_lower="NINE"
+            )
+
+            # ---- L1D ----
+            dc = Cache(
+                f"dcacheL1_{i}",
+                domain=1,
+                size=conf["cache"]["l1d"]["size"],
+                latency=conf["cache"]["l1d"]["latency-ns"],
+                line_size=conf["cache"]["l1d"]["line-size"],
+                associativity=conf["cache"]["l1d"]["associativity"],
+                repl_policy=conf["cache"]["l1d"].get("repl_policy", "LRU"),
+                writing_policy=conf["cache"]["l1d"].get("writing_policy", "WBack"),
+                allocation_policy=conf["cache"]["l1d"].get("allocation_policy", "WAllocate"),
+                cpu=i,
+                local=1,
+                id=200 + i,
+                level=1,
+                levels_number=2,
+                is_home=0,
+                is_coherent=1,
+                inclusion_higher="NINE",
+                inclusion_lower="NINE"
+            )
+
+            self.icache.append(ic)
+            self.dcache.append(dc)
+
+            # ---- CoSim IL1 ----
+            self.cosim_il1.append(
+                CoherentInterconnect(
+                    f"Inter_CoSim_iL1_{i}",
+                    domain=1,
+                    latency=0,
+                    n_cache_in=1,
+                    n_cache_out=0,
+                    n_home_in=0,
+                    n_home_out=1,
+                    n_mmapped=0,
+                    n_device=0,
+                    flitSize=0,
+                    memory_word_length=0,
+                    is_mesh=0,
+                    mesh_x=0,
+                    mesh_y=0,
+                    with_contention=0,
+                    contention_interval=0,
+                    buffer_size=0,
+                    virtual_channels=0,
+                    router_latency=0,
+                    link_latency=0,
+                    noc_stats_per_initiator_on=0,
+                    is_coherent=1
+                )
+            )
+
+        # ================= L2 =================
+        self.l2 = Cache(
+            "cacheL2_0",
+            domain=1,
+            size=conf["cache"]["l2"]["size"],
+            latency=conf["cache"]["l2"]["latency-ns"],
+            line_size=conf["cache"]["l2"]["line-size"],
+            associativity=conf["cache"]["l2"]["associativity"],
+            repl_policy=conf["cache"]["l2"].get("repl_policy", "LRU"),
+            writing_policy=conf["cache"]["l2"].get("writing_policy", "WBack"),
+            allocation_policy=conf["cache"]["l2"].get("allocation_policy", "WAllocate"),
+            cpu=-1,
+            local=0,
+            id=300,
+            level=2,
+            l1i_simulate=1,
+            levels_number=2,
+            is_home=0,
+            is_coherent=1,
+            inclusion_lower=conf["cache"]["l2"].get("inclusion-l1", "Inclusive"),
+            inclusion_higher="NINE"
+        )
+
+        # ================= INTERCONNECTS =================
+        self.bus = Interconnect(
+            "system_bus",
+            domain=1,
+            latency=2000,
+            n_in_ports=self.smp,
+            n_out_ports=1
+        )
+
+        self.iL1L2 = CoherentInterconnect(
+            "Inter_L1I_L2",
+            domain=1,
+            latency=0,
+            n_cache_in=self.smp,
+            n_cache_out=0,
+            n_home_in=0,
+            n_home_out=1,
+            n_mmapped=0,
+            n_device=0,
+            flitSize=0,
+            memory_word_length=0,
+            is_mesh=0,
+            mesh_x=0,
+            mesh_y=0,
+            with_contention=0,
+            contention_interval=0,
+            buffer_size=0,
+            virtual_channels=0,
+            router_latency=0,
+            link_latency=0,
+            noc_stats_per_initiator_on=0,
+            is_coherent=1
+        )
+
+        self.dL1L2 = CoherentInterconnect(
+            "Inter_L1D_L2",
+            domain=1,
+            latency=0,
+            n_cache_in=self.smp,
+            n_cache_out=self.smp,
+            n_home_in=1,
+            n_home_out=1,
+            n_mmapped=0,
+            n_device=0,
+            flitSize=0,
+            memory_word_length=0,
+            is_mesh=0,
+            mesh_x=0,
+            mesh_y=0,
+            with_contention=0,
+            contention_interval=0,
+            buffer_size=0,
+            virtual_channels=0,
+            router_latency=0,
+            link_latency=0,
+            noc_stats_per_initiator_on=0,
+            is_coherent=1
+        )
+
+        self.cosim_d = self.cosim_il1
+
+        self.cosim = SystemCCosim(
+            "SystemCCosim0",
+                                 roi_only=1,
+                                 domain=1,
+                                 n_out_ports=self.smp
+        )
+
+        # ================= MEMORY =================
+        self.mem = Memory(
+            "Memory0",
+            domain=1,
+            size=conf["memory"]["ram_size"],
+            base_address=conf["memory"]["ram_base"],
+            cycle_duration=conf["memory"].get("cycle_duration", 1000),
+            read_cycles=conf["memory"]["read-latency-cycles"],
+            write_cycles=conf["memory"]["write-latency-cycles"],
+            channel_width=conf["memory"]["channel-width"]
+        )
+
+        self.mon = Monitor(
+            "Monitor0",
+            log_directory=conf["monitoring"]["log_dir"],
+            size=4,
+            domain=1,
+            base_address=conf["monitoring"].get("base_address", 385875968)
+        )
+
+        # ================= CONNECTIONS =================
+
+        for cpu in self.cpus:
+            cpu >> self.bus
+
+        self.bus >> self.mon
+
+        # ---- Instruction path ----
+        for i in range(self.smp):
+            self.cosim(f'fetch_port_{i}') >> self.cosim_il1[i]('cache_in_0')
+            self.cosim_il1[i]('home_out_0') >> self.icache[i]('in_data')
+            self.icache[i]('out_data') >> self.iL1L2(f'cache_in_{i}')
+
+        self.iL1L2('home_out_0') >> self.l2('in_instruction')
+
+        # ---------------- Data path ----------------
+        for i in range(self.smp):
+            self.cosim(f'data_port_{i}') >> self.dcache[i]('in_data')
+            self.dcache[i]('out_data') >> self.dL1L2(f'cache_in_{i}')
+
+        self.dL1L2('home_out_0') >> self.l2('in_data')
+
+        self.l2('out_data') >> self.mem('p1')
+
+        # ---- Coherence: L2 -> L1D invalidate path ----
+
+        # L2 sends invalidations to the interconnect
+        self.l2('out_invalidate') >> self.dL1L2('home_in_0')
+
+        # Interconnect forwards invalidations to each L1D
+        for i in range(self.smp):
+            self.dL1L2(f'cache_out_{i}') >> self.dcache[i]('in_invalidate')
+        
+        if "log_level" in conf :
+          self.addParam(Param("log_level",conf["log_level"]))
+
+        if "monitoring" in conf  and  "stats_file" in conf["monitoring"] : 
+          self.addParam(Param("stats_file", conf["monitoring"]["stats_file"]))
