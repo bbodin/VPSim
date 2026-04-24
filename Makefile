@@ -1,12 +1,14 @@
 
-.PHONY: release debug
+.PHONY: release debug all
+
+all : debug/Makefile release/Makefile
+	make -C debug/ install_vpsim install_qemu
+	make -C release/  install_vpsim install_qemu
 
 release: release/vpsim-release/bin/vpsim release/vpsim-release/lib/qemu/vpsim-qemu.so
 debug: debug/vpsim-release/bin/vpsim debug/vpsim-release/lib/qemu/vpsim-qemu.so
 
-all : debug/Makefile release/Makefile
-	make -C debug/
-	make -C release/
+
 
 
 debug/Makefile : CMakeLists.txt

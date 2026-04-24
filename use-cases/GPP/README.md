@@ -90,7 +90,7 @@ Following is a description of the modelled architecture (`/GPP/gpp.py`):
      $ sesam benchmark ./my_app
      ```
    - At the end of the program's execution, VPSim prints statistics from all the simulated components (Caches, NoC, CPUs, etc.)
-     **NOTE:** Each time you run "sesam benchmark ./my_app", the resulted statistics captured during execution are automatically dumped to the host machine in the associated './bin/.<paltform_name>' directory
+     **NOTE:** Each time you run "sesam benchmark ./my_app", the resulted statistics captured during execution are automatically dumped to the host machine in the associated './bin/.<platform_name>' directory
    - To end the simulation, enter the following command in your simulated userspace:
      ```sh
      $ sesam quit
