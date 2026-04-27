@@ -25,10 +25,13 @@ class DevTree(object):
         with open(template) as inDt:
             self.templ=inDt.read()
         self.templName=template
-    def make(self):
+
+    def make(self, debug = False, output_file = None):
         outB=self.templName[: - len('.dts.template')]
         outS = outB + '.dts'
         outB += '.dtb'
+        if output_file :
+            outB = output_file
         dt=self.dt
         devtree=self.templ%(
             self.name,
@@ -36,9 +39,14 @@ class DevTree(object):
             "\n".join(dt['cpu']),
             "\n".join(dt['dev']),
             "\n".join(dt['top']))
+        if debug :
+            print(devtree)
         with open(outS,'w') as dtsf:
             dtsf.write(devtree)
         os.system('dtc -q -Idts -Odtb -o %s %s'% (outB,outS))
+        return outB
+
+
     def getref(self):
         return self.dt
 
@@ -259,3 +267,152 @@ def c_pl031(conf, dt):
             hex(0x1000&0xFFFFFFFF),
             conf['irq'])
     )
+
+
+def generate_devicetree(device_tree_template, conf):
+
+    if not device_tree_template:
+        raise Exception("Device tree template is required")
+
+    # Create DT
+    dt = DevTree(conf['platform_name'], device_tree_template)
+
+    # =========================================================
+    # CPU / GIC (c_arm64 expects a VERY specific structure)
+    # =========================================================
+    cpu_conf = conf.get('cpu')
+    if not cpu_conf:
+        raise Exception("Missing 'cpu' section in configuration")
+
+    gic_conf = cpu_conf.get('gic')
+    if not gic_conf:
+        raise Exception("Missing 'cpu.gic' section in configuration")
+
+    dt_conf = {
+        'cores': cpu_conf['cores'],
+        'cores_per_cluster': cpu_conf['cores_per_cluster'],
+        'cpu_clusters': cpu_conf['cpu_clusters'],
+    }
+
+    # Normalize GIC version
+    if gic_conf.get('version') == 3:
+        dt_conf['gic'] = 'v3'
+    elif gic_conf.get('version') == 2:
+        dt_conf['gic'] = 'v2'
+    else:
+        raise Exception("Unsupported or missing GIC version")
+
+    # Inject ALL required GIC fields safely
+    required_gic_keys = [
+        'distributor_base', 'distributor_size',
+        'redistributor_base', 'redistributor_size',
+        'cpu_if_base', 'cpu_if_size',
+        'vctrl_base', 'vctrl_size',
+        'vcpu_base', 'vcpu_size'
+    ]
+
+    for k in required_gic_keys:
+        if k in gic_conf:
+            dt_conf[k] = gic_conf[k]
+
+    c_arm64(dt_conf, dt.dt)  # IMPORTANT: pass raw dict
+
+    # =========================================================
+    # RAM
+    # =========================================================
+    for ram in conf.get('ram', []):
+        if 'base' not in ram or 'size' not in ram:
+            raise Exception("RAM entry must contain 'base' and 'size'")
+        c_memory({
+            'base': ram['base'],
+            'size': ram['size']
+        }, dt.dt)
+
+    # =========================================================
+    # UARTs
+    # =========================================================
+    for uart in conf.get('uarts', []):
+        if 'type' not in uart or 'base' not in uart or 'irq' not in uart:
+            raise Exception("UART entry missing required fields")
+
+        if uart['type'] == 'cdns':
+            c_cadence_uart({
+                'base': uart['base'],
+                'irq': uart['irq']
+            }, dt.dt)
+
+        elif uart['type'] == 'pl011':
+            c_pl11_uart({
+                'base': uart['base'],
+                'irq': uart['irq']
+            }, dt.dt)
+
+    # =========================================================
+    # VirtIO NET
+    # =========================================================
+    for net in conf.get('net', []):
+        if not all(k in net for k in ('base', 'irq')):
+            raise Exception("VirtIO net requires 'base' and 'irq'")
+
+        c_virtio({
+            'base': net['base'],
+            'irq': net['irq']
+        }, dt.dt)
+
+    # =========================================================
+    # VirtIO BLOCK
+    # =========================================================
+    for b in conf.get('block', []):
+        if not all(k in b for k in ('base', 'irq')):
+            raise Exception("VirtIO block requires 'base' and 'irq'")
+
+        c_virtio({
+            'base': b['base'],
+            'irq': b['irq']
+        }, dt.dt)
+
+    # =========================================================
+    # CDROM (VirtIO)
+    # =========================================================
+    for cd in conf.get('cdrom', []):
+        if not all(k in cd for k in ('base', 'irq')):
+            raise Exception("CDROM requires 'base' and 'irq'")
+
+        c_virtio({
+            'base': cd['base'],
+            'irq': cd['irq'],
+            'size': cd.get('size', 0x1000)
+        }, dt.dt)
+
+    # =========================================================
+    # SystemC
+    # =========================================================
+    for systemc in conf.get('systemc', []):
+        if 'dtnode' not in systemc:
+            raise Exception("SystemC entry must contain 'dtnode'")
+        c_systemc_output_port(systemc, dt.dt)
+
+    # =========================================================
+    # FW CFG
+    # =========================================================
+    if 'fw_cfg_addr' in conf:
+        c_fw_cfg({'base': conf['fw_cfg_addr']}, dt.dt)
+
+    # =========================================================
+    # RTC
+    # =========================================================
+    if 'rtc' in conf:
+        rtc = conf['rtc']
+        if not all(k in rtc for k in ('base', 'irq')):
+            raise Exception("RTC requires 'base' and 'irq'")
+
+        c_pl031({
+            'base': rtc['base'],
+            'irq': rtc['irq'],
+            'size': rtc.get('size', 0x1000)
+        }, dt.dt)
+
+    # =========================================================
+    # FINALIZE
+    # =========================================================
+    return dt.make(debug = False)
