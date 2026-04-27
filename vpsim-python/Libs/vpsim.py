@@ -276,8 +276,10 @@ class System:
                 for a in ip._ka:
                     if hasattr(ip,a):
                        v=getattr(ip,a)
-                    else:
+                    elif ip.__class__.__name__ in _Formulas :
                        v=_Formulas[ip.__class__.__name__][a](ip)
+                    else:
+                        print(f"ERROR {ip.__class__.__name__} requires argument {a}.")
                     if type(v) == bool:
                        v= 1 if v else 0
                     elif isinstance(v,_TUnit):
