@@ -7,7 +7,6 @@ import getpass, os, math
 from datetime import datetime
 import threading
 
-from dt import DevTree, c_arm64, c_virtio, c_memory, c_pl11_uart, c_pl031
 
 class NodeCluster:
     '''

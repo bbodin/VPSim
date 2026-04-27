@@ -4,7 +4,6 @@ from vpsim import ModelProvider, ModelProviderCpu, ModelProviderDev, ModelProvid
 from vpsim import SystemCCosim, IOAccessCosim, NoCDeviceController
 import os
 
-from dt import DevTree, c_arm64, c_virtio, c_memory, c_pl11_uart, c_pl031
 
 VPSIM_HOME = os.getenv('VPSIM_HOME')
 
@@ -38,13 +37,6 @@ class Armv8Cluster:
         ModelProviderParam2(provider=self.q.name, option='-monitor', value='none')
         ModelProviderParam1(provider=self.q.name, option='-semihosting')
 
-        if 'device_tree_template' in conf :
-            self.dt = DevTree(conf['platform_name'],conf['device_tree_template'])
-            assert(self.dt)
-        else :
-            print ("Warning no device tree, bare metal mode only.")
-
-
         if 'qemu_execution_trace_file' in conf["monitoring"] and conf["monitoring"]['qemu_execution_trace_file']:
             trace_file = conf["monitoring"]['qemu_execution_trace_file']
             ModelProviderParam2(provider=self.q.name, option='-d', value='mmu,in_asm,int,guest_errors')
@@ -75,13 +67,6 @@ class Armv8Cluster:
             self.sysbus.n_in_ports += 1
             cpu >> self.sysbus
 
-        # Device tree
-        dt_conf = {
-            'cores': conf['cpu']['cores'],
-            'cores_per_cluster': conf['cpu']['cores_per_cluster'],
-            'cpu_clusters': conf['cpu']['cpu_clusters'],
-        }
-
         # Initialize the GIC regions within QEMU
         if conf['cpu']['gic']['version'] == 3:
             gicv3_dist = ModelProviderDev( \
@@ -98,7 +83,7 @@ class Armv8Cluster:
                 size=conf['cpu']['gic']['redistributor_size'],
                 irq=n_cores)
 
-            dt_conf['gic']='v3'
+
         elif conf['cpu']['gic']['version'] == 2:
             gicv2_dist = ModelProviderDev( \
                 provider=self.q.name,
@@ -128,12 +113,5 @@ class Armv8Cluster:
                 size=conf['cpu']['gic']['vcpu_size'],
                 irq=0)
 
-            dt_conf['gic']='v2'
         else:
             Exception("Unknown GIC version (must be 2 or 3).")
-
-        for c in conf['cpu']['gic']:
-            dt_conf[c] = conf['cpu']['gic'][c]
-
-        if hasattr(self,"dt") :
-            c_arm64(dt_conf, self.dt.getref())
