@@ -82,10 +82,6 @@ conf = {
         "net0": {"model": "virtio-mmio", "base":  0xa200000, "size": 0x1000, "irq": 42},
         "rtc": {"model": "pl031", "base": 0xb000000, "size": 0x1000, "irq": 44},
         "pcie": {"model": "pcie", "base": 0x10000000, "size": 0, "irq": 3},
-
-
-
-
     },
 
     'blocks': [
