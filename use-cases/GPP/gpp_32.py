@@ -21,6 +21,7 @@ import os
 vpsim_home = os.environ.get("VPSIM_HOME")
 if not vpsim_home:
     raise EnvironmentError("Environment variable VPSIM_HOME is not set.")
+os.environ["VPSIM_PATH"] = f"{vpsim_home}/bin/vpsim"
 
 import sys
 sys.path.insert(0, f"{vpsim_home}/Python/Libs/")
@@ -28,11 +29,10 @@ sys.path.insert(0, f"{vpsim_home}/Python/Platforms/")
 
 from armv8_platform import FullSystem
 
-
-gpp_home = os.path.join(os.environ['VPSIM_HOME'], 'GPP')
+gpp_home = os.path.join(os.path.dirname(__file__), "..", 'GPP')
 
 conf = {
-    'platform_name': 'GPP_USECASE',
+    'platform_name': 'GPP_32_USECASE',
     'device_tree_template': os.path.join(gpp_home, 'dt', 'gpp.dts.template'),
 
     'cpu': {
@@ -98,11 +98,9 @@ conf = {
 
     'software': {
        'mode': 'minimal',
-
        'dtb': {
            'path': os.path.join(gpp_home, 'dt', 'gpp.dtb'),
        },
-
        'kernel': {
            'path': os.path.join(gpp_home, 'linux', 'linux-6.1.44'),
            'bootargs': 'console=ttyAMA0 earlycon root=/dev/vda uio_pdrv_genirq.of_id=generic-uio ip=dhcp',
@@ -198,12 +196,13 @@ conf = {
             },
         ],
     },
+
     'monitoring' : {
         'sesam_monitor_addr': 0x17000000,
         'sesam_monitor_log_directory' : "./",
         'gdb_port': None,
-        'vpsim_log_level' : 1, # This is the log level of VPSIM
-        'vpsim_stats_file' : "./gpp_use_case_stats.log", # This is the location of any vpsim log file
+        'vpsim_log_level' : 3, # This is the log level of VPSIM
+        'vpsim_stats_file' : None, # This is the location of any vpsim log file
         'qemu_execution_trace_file' : None # This is the location of the Qemu execution trace file
     }
 }

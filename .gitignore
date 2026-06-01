@@ -1,5 +1,6 @@
 build*
 /.idea
+/.vscode
 
 # Log folders 
 .GPP_VP*
