@@ -5231,26 +5231,6 @@
 			<value>user,net=192.168.0.0/24,id=net0</value>
 			<provider>qemuslave</provider>
 		</ModelProviderParam2>
-		<ModelProviderDev name="block0">
-			<domain>1</domain>
-			<model>virtio-mmio</model>
-			<base_address>168820736</base_address>
-			<size>4096</size>
-			<irq>40</irq>
-			<provider>qemuslave</provider>
-		</ModelProviderDev>
-		<ModelProviderParam2 name="ModelProviderParam210">
-			<domain>1</domain>
-			<option>-device</option>
-			<value>virtio-blk-device,drive=block0</value>
-			<provider>qemuslave</provider>
-		</ModelProviderParam2>
-		<ModelProviderParam2 name="ModelProviderParam211">
-			<domain>1</domain>
-			<option>-drive</option>
-			<value>file=/local2/is157416/bb284433/hal4sdv/vpsim/vpsim_v7/vpsim-release/GPP/disk_images/busybox.qcow2,id=block0</value>
-			<provider>qemuslave</provider>
-		</ModelProviderParam2>
 		<ModelProviderDev name="ModelProviderDev3">
 			<domain>1</domain>
 			<model>pl031</model>

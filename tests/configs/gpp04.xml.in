@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <vpsim source="python">
+
 <simulation>
 <log_level>3</log_level>
 <stats_file>@STATS_FILE@</stats_file>
