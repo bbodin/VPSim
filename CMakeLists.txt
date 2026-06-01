@@ -11,8 +11,10 @@ project(vpsim)
 ##### Configure & build QEMU #####
 ##################################
 
-set(QEMU_SOURCE_DIR ${CMAKE_SOURCE_DIR}/vpsim-qemu)
-set(QEMU_BINARY_DIR ${CMAKE_BINARY_DIR}/qemu-build)
+set(QEMU7_SOURCE_DIR ${CMAKE_SOURCE_DIR}/vpsim-qemu)
+set(QEMU9_SOURCE_DIR ${CMAKE_SOURCE_DIR}/vpsim-qemu9)
+set(QEMU7_BINARY_DIR ${CMAKE_BINARY_DIR}/qemu7-build)
+set(QEMU9_BINARY_DIR ${CMAKE_BINARY_DIR}/qemu9-build)
 
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -21,13 +23,28 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
 endif()
 
 # Ensure the QEMU build directory exists (create it if not)
-file(MAKE_DIRECTORY ${QEMU_BINARY_DIR})
-include(ExternalProject)
+file(MAKE_DIRECTORY ${QEMU9_BINARY_DIR})
 
-ExternalProject_Add(qemu
-        SOURCE_DIR    ${QEMU_SOURCE_DIR}
-        BINARY_DIR    ${QEMU_BINARY_DIR}
-        CONFIGURE_COMMAND ${QEMU_SOURCE_DIR}/configure --target-list=aarch64-softmmu
+add_custom_target(qemu9
+    # COMMAND ${CMAKE_COMMAND} -E echo "Checking out branch ${QEMU_BRANCH}"
+    # COMMAND git checkout ${QEMU_BRANCH}
+    COMMAND ${QEMU9_SOURCE_DIR}/configure --target-list=aarch64-softmmu
+        --disable-sparse --disable-sdl --disable-gtk --disable-vnc --disable-xen
+        --disable-brlapi --disable-vnc-sasl --disable-vnc-jpeg
+        --disable-curses --disable-curl --disable-kvm --disable-bsd-user
+        --disable-coroutine-pool --disable-attr --disable-docs
+        --disable-spice --disable-usb-redir --disable-guest-agent --disable-cap-ng --disable-libiscsi
+        --disable-libusb --disable-werror ${QEMU_ENABLE_DEBUG}
+    COMMAND make libvpsim-aarch64.so
+    COMMAND make contrib-plugins
+    WORKING_DIRECTORY ${QEMU9_BINARY_DIR}
+    BYPRODUCTS ${QEMU9_BINARY_DIR}/libvpsim-aarch64.so
+)
+file(MAKE_DIRECTORY ${QEMU7_BINARY_DIR})
+
+
+add_custom_target(qemu7
+        COMMAND ${QEMU7_SOURCE_DIR}/configure --target-list=aarch64-softmmu
     # Core / Emulator Features
         --disable-sparse                     # (old)
         --disable-kvm                        # (old)
@@ -125,17 +142,14 @@ ExternalProject_Add(qemu
     # User-mode
     --disable-linux-user
         ${QEMU_ENABLE_DEBUG}
-        BUILD_COMMAND make -j ${CMAKE_BUILD_PARALLEL_LEVEL} qemu-system-aarch64
+      COMMAND make -j ${CMAKE_BUILD_PARALLEL_LEVEL} qemu-system-aarch64
+      COMMAND cp ${QEMU7_BINARY_DIR}/qemu-system-aarch64 ${QEMU7_BINARY_DIR}/libvpsim-aarch64.so
+      WORKING_DIRECTORY ${QEMU7_BINARY_DIR}
+      BYPRODUCTS ${QEMU7_BINARY_DIR}/libvpsim-aarch64.so
 
-        INSTALL_COMMAND ""                      # no install step
-        BUILD_ALWAYS OFF                        # don’t rebuild every time
-        UPDATE_DISCONNECTED 1                   # don’t try to git/pull
-        BUILD_BYPRODUCTS ${QEMU_BINARY_DIR}/qemu-system-aarch64
-        LOG_CONFIGURE 1
-        LOG_BUILD 1
-        USES_TERMINAL_CONFIGURE 1
-        USES_TERMINAL_BUILD     1
 )
+
+
 
 ##################################
 ########## Build VPSim ###########
@@ -166,9 +180,9 @@ MESSAGE(STATUS "VPSIM_OUTPUT IS ${VPSIM_OUTPUT}")
 add_custom_command(
     OUTPUT ${QEMU_OUTPUT}
     COMMAND ${CMAKE_COMMAND} -E copy
-            ${QEMU_BINARY_DIR}/aarch64-softmmu/qemu-system-aarch64
+            ${QEMU7_BINARY_DIR}/libvpsim-aarch64.so
             ${QEMU_OUTPUT}
-    DEPENDS qemu
+    DEPENDS ${QEMU7_BINARY_DIR}/libvpsim-aarch64.so
     COMMENT "Copying QEMU binary"
 )
 
