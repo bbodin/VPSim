@@ -173,6 +173,8 @@ add_subdirectory(${VPSIM_SOURCE_DIR} ${VPSIM_BINARY_DIR})
 # Define paths
 set(OUTPUT_FOLDER "${CMAKE_BINARY_DIR}/vpsim-release/")
 set(QEMU_OUTPUT  "${OUTPUT_FOLDER}/lib/qemu/vpsim-qemu.so")
+set(QEMU7_OUTPUT  "${OUTPUT_FOLDER}/lib/qemu/vpsim-qemu7.so")
+set(QEMU9_OUTPUT  "${OUTPUT_FOLDER}/lib/qemu/vpsim-qemu9.so")
 set(VPSIM_OUTPUT "${OUTPUT_FOLDER}/bin/vpsim")
 
 MESSAGE(STATUS "VPSIM_OUTPUT IS ${VPSIM_OUTPUT}")
@@ -182,6 +184,22 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy
             ${QEMU7_BINARY_DIR}/libvpsim-aarch64.so
             ${QEMU_OUTPUT}
+    DEPENDS ${QEMU7_BINARY_DIR}/libvpsim-aarch64.so
+    COMMENT "Copying QEMU binary"
+)
+add_custom_command(
+    OUTPUT ${QEMU9_OUTPUT}
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${QEMU9_BINARY_DIR}/libvpsim-aarch64.so
+            ${QEMU9_OUTPUT}
+    DEPENDS ${QEMU9_BINARY_DIR}/libvpsim-aarch64.so
+    COMMENT "Copying QEMU binary"
+)
+add_custom_command(
+    OUTPUT ${QEMU7_OUTPUT}
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${QEMU7_BINARY_DIR}/libvpsim-aarch64.so
+            ${QEMU7_OUTPUT}
     DEPENDS ${QEMU7_BINARY_DIR}/libvpsim-aarch64.so
     COMMENT "Copying QEMU binary"
 )
@@ -218,7 +236,7 @@ add_custom_target(install_qemu ALL
     COMMENT "Built QEMU, VPSim, and copied artifacts"
 )
 add_custom_target(default ALL
-    DEPENDS ${QEMU_OUTPUT} ${VPSIM_OUTPUT} link_python
+    DEPENDS ${QEMU_OUTPUT} ${QEMU7_OUTPUT} ${QEMU9_OUTPUT} ${VPSIM_OUTPUT} link_python
     COMMENT "Built QEMU, VPSim, and copied artifacts"
 )
 

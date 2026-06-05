@@ -82,6 +82,6 @@ ctest --test-dir ./debug --tests-regex "vpsim[.]run_*" -VV
 To rerun the test : 
 
 ```
-ctest --test-dir ./debug/ --tests-regex vpsim.run_simple_with_kernel_testcase_sesam_012_benchmark_long_only_loop_run --output-on-failure
+ctest --test-dir ./debug/ --tests-regex vpsim.run_simple_qemu_9_with_kernel_testcase_sesam_013_benchmark_small_float_sve_run --output-on-failure
 
 ```
