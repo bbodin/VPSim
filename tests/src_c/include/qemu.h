@@ -10,11 +10,12 @@ static inline void qemu_semihost(uint64_t syscall, uint64_t arg0, uint64_t arg1)
         "str x1, [sp, #0]\n"
         "mov x1, %2\n"
         "str x1, [sp, #8]\n"
+        "mov x1, sp\n"
         "mov x0, %0\n"
         "hlt #0xf000\n"
         :
         : "r"(syscall), "r"(arg0), "r"(arg1)
-        : "x0", "x1"
+        : "x0", "x1", "memory"
     );
 }
 
