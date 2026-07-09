@@ -1,10 +1,145 @@
 enable_testing()
 
+# ============================================================
+# ARM v8 ELF Compilation Setup
+# ============================================================
+
+# ARM v8 Toolchain Configuration
+set(CC_PREFIX "aarch64-linux-gnu")
+find_program(AS ${CC_PREFIX}-as REQUIRED)
+find_program(CC ${CC_PREFIX}-gcc REQUIRED)
+find_program(LD ${CC_PREFIX}-ld REQUIRED)
+
+# Compiler flags (matching Makefile)
+set(ASFLAGS "-march=armv8-a+sve")
+set(INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src_c/include")
+set(CFLAGS "-march=armv8-a+sve" "-ffreestanding" "-Wall" "-Wextra" "-Werror" "-c" "-fno-stack-protector" "-I${INCLUDE_PATH}")
+set(LDFLAGS "-T" "${CMAKE_CURRENT_SOURCE_DIR}/linker/linker.ld")
+
+# Output directory for object files and ELFs
+set(ELF_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/elf_build")
+file(MAKE_DIRECTORY ${ELF_BUILD_DIR})
+
+# ============================================================
+# Assemble _multicore.S (common for all test cases)
+# ============================================================
+
+add_custom_command(
+    OUTPUT ${ELF_BUILD_DIR}/_multicore.o
+    COMMAND ${AS} ${ASFLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/src_asm/_multicore.S -o ${ELF_BUILD_DIR}/_multicore.o
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src_asm/_multicore.S
+    COMMENT "Assembling _multicore.S"
+)
+
+# ============================================================
+# Compile C Source Files
+# ============================================================
+
+file(GLOB C_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src_c/*.c")
+
+foreach(C_SOURCE ${C_SOURCES})
+    get_filename_component(C_BASE ${C_SOURCE} NAME_WE)
+
+    add_custom_command(
+        OUTPUT ${ELF_BUILD_DIR}/${C_BASE}.o
+        COMMAND ${CC} ${CFLAGS} ${C_SOURCE} -o ${ELF_BUILD_DIR}/${C_BASE}.o
+        DEPENDS ${C_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/src_c/include/qemu.h
+        COMMENT "Compiling ${C_SOURCE}"
+    )
+endforeach()
+
+# ============================================================
+# Link ELF Files
+# ============================================================
+
+foreach(C_SOURCE ${C_SOURCES})
+    get_filename_component(C_BASE ${C_SOURCE} NAME_WE)
+    set(ELF_NAME "kernel_${C_BASE}.elf")
+
+    add_custom_command(
+        OUTPUT ${ELF_BUILD_DIR}/${ELF_NAME}
+        COMMAND ${LD} ${LDFLAGS}
+                ${ELF_BUILD_DIR}/_multicore.o
+                ${ELF_BUILD_DIR}/${C_BASE}.o
+                -o ${ELF_BUILD_DIR}/${ELF_NAME}
+        DEPENDS ${ELF_BUILD_DIR}/_multicore.o ${ELF_BUILD_DIR}/${C_BASE}.o ${CMAKE_CURRENT_SOURCE_DIR}/linker/linker.ld
+        COMMENT "Linking ${ELF_NAME}"
+    )
+
+    list(APPEND GENERATED_ELFS ${ELF_BUILD_DIR}/${ELF_NAME})
+    list(APPEND ALL_ELF_OUTPUTS ${ELF_BUILD_DIR}/${ELF_NAME})
+endforeach()
+
+# Also add the multicore object to the outputs
+list(APPEND ALL_ELF_OUTPUTS ${ELF_BUILD_DIR}/_multicore.o)
+
+# Add all C object files to outputs
+foreach(C_SOURCE ${C_SOURCES})
+    get_filename_component(C_BASE ${C_SOURCE} NAME_WE)
+    list(APPEND ALL_ELF_OUTPUTS ${ELF_BUILD_DIR}/${C_BASE}.o)
+endforeach()
+
+# ============================================================
+# Create a target to build all ELFs
+# ============================================================
+
+add_custom_target(compile_elfs ALL
+    DEPENDS ${ALL_ELF_OUTPUTS}
+    COMMENT "Compiling all test ELF files"
+)
+
+
+
+# ===================================================================
+# Direct QEMU System Tests (using local qemu-system-aarch64 directly)
+# ===================================================================
+
+find_program(QEMU_SYSTEM_AARCH64 qemu-system-aarch64 REQUIRED)
+
+foreach(ELF ${GENERATED_ELFS})
+    get_filename_component(ELF_BASE ${ELF} NAME_WE)
+
+    # Create a test name for direct qemu execution
+    set(QEMU_TEST_NAME "qemu_local_${ELF_BASE}")
+
+    add_test(
+        NAME ${QEMU_TEST_NAME}
+        COMMAND ${QEMU_SYSTEM_AARCH64} -M virt -cpu max -nographic -semihosting -smp 4 -kernel ${ELF}
+    )
+    set_tests_properties(${QEMU_TEST_NAME} PROPERTIES TIMEOUT 60)
+endforeach()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 message(STATUS "")
 message(STATUS "==== Collecting ELF and XML files ====")
 
-# ELF files
-file(GLOB TEST_ELFS "${CMAKE_CURRENT_SOURCE_DIR}/elf/*.elf")
+# ELF files - use generated ELFs instead of pre-built ones
+set(TEST_ELFS ${GENERATED_ELFS})
 message(STATUS "Found ELF files:")
 foreach(e ${TEST_ELFS})
     message(STATUS "  - ${e}")
