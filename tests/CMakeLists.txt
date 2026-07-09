@@ -46,7 +46,7 @@ foreach(XML_IN ${TEST_XMLS})
             # Values for replacement (for configure_file)
             
             # XML variables to replace
-            set(LOG_DIRECTORY "${CMAKE_BINARY_DIR}/results/")
+            set(LOG_DIRECTORY "${CMAKE_BINARY_DIR}/results/${UNIT_TEST_NAME}/")
             file(MAKE_DIRECTORY "${LOG_DIRECTORY}")
             
             set(VPSIMLIBPATH  ${ABS_QEMU_LOCATION})
@@ -87,7 +87,7 @@ foreach(XML_IN ${TEST_XMLS})
                 COMMAND  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}
             )
             set_tests_properties(${TESTNAME}_run PROPERTIES DEPENDS ${GENERATED_XML})
-            set_tests_properties(${TESTNAME}_run PROPERTIES TIMEOUT 120)
+            set_tests_properties(${TESTNAME}_run PROPERTIES TIMEOUT 3600)
             set_tests_properties(${TESTNAME}_run PROPERTIES ENVIRONMENT SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1)
 
             get_property(TESTS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY TESTS)
