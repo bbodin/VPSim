@@ -30,3 +30,10 @@ test : debug/Makefile
 
 clean:
 	rm -rf build/ debug/ release/ 
+
+
+
+test_only :
+	cmake -B build_test -S tests
+	cmake --build build_test --target compile_elfs 
+	ctest --test-dir build_test -R qemu_local

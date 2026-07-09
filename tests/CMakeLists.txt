@@ -1,3 +1,7 @@
+cmake_minimum_required(VERSION 3.10)
+
+project(vpsim_tests)
+
 enable_testing()
 
 # ============================================================
@@ -161,20 +165,25 @@ endif()
 #message(STATUS "")
 #message(STATUS "==== Generating tests ====")
 
-# Loop over every XML × ELF combination
-foreach(XML_IN ${TEST_XMLS})
+# Skip vpsim tests if VPSIM_OUTPUT is not defined
+if(DEFINED VPSIM_OUTPUT AND NOT VPSIM_OUTPUT STREQUAL "")
+    # Loop over every XML × ELF combination
+    foreach(XML_IN ${TEST_XMLS})
 
-    get_filename_component(XML_BASE ${XML_IN} NAME_WE)
+        get_filename_component(XML_BASE ${XML_IN} NAME_WE)
 
-    foreach(ELF ${TEST_ELFS})
-        
-        get_filename_component(ELF_BASE ${ELF} NAME_WE)
-    
-        foreach(QEMU_VERSION 7 9)
+        foreach(ELF ${TEST_ELFS})
+
+            get_filename_component(ELF_BASE ${ELF} NAME_WE)
+
+            foreach(QEMU_VERSION 7 9)
             set(ABS_QEMU_LOCATION "${QEMU${QEMU_VERSION}_OUTPUT}")
 
             set(UNIT_TEST_NAME "${XML_BASE}_qemu_${QEMU_VERSION}_with_${ELF_BASE}")
-            get_target_property(VPSIM_LOCATION vpsim BINARY_DIR)
+            # Only get vpsim target properties if it exists
+            if(TARGET vpsim)
+                get_target_property(VPSIM_LOCATION vpsim BINARY_DIR)
+            endif()
             set(ABS_VPSIM_LOCATION "${VPSIM_OUTPUT}")
 
             #message(STATUS "Absolute path to vpsim lib: ${VPSIMLIBPATH}")
@@ -231,6 +240,9 @@ foreach(XML_IN ${TEST_XMLS})
 
     endforeach()
 endforeach()
+else()
+    message(STATUS "VPSIM_OUTPUT not defined, skipping vpsim tests")
+endif()
 
 message(STATUS "==== Test generation completed ====")
 message(STATUS "")
