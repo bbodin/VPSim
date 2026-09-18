@@ -11,3 +11,4 @@ __pycache__
 *.dts
 stats.log
 /vpsim-qemu9/
+/Testing

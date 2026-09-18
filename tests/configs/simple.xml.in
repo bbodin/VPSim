@@ -225,7 +225,7 @@
 		<ModelProviderDev name="ModelProviderDev3">
 			<domain>1</domain>
 			<model>pl031</model>
-			<base_address>184549376</base_address>
+			<base_address>151060480</base_address>  <!-- 0x 0901 0000 -->
 			<size>4096</size>
 			<irq>44</irq>
 			<provider>qemuslave</provider>

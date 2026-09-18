@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 
 project(vpsim_tests)
 
+# Set policy to avoid warnings about non-existent targets
+cmake_policy(SET CMP0045 NEW)
+
 enable_testing()
 
 # ============================================================
@@ -36,52 +39,69 @@ add_custom_command(
 )
 
 # ============================================================
-# Compile C Source Files
+# Compile and Link C Source Files
 # ============================================================
 
-file(GLOB C_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src_c/*.c")
+# Separate QEMU and SESAM test sources
+file(GLOB QEMU_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src_c/testcase_qemu_*.c")
+file(GLOB SESAM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src_c/testcase_sesam_*.c")
 
-foreach(C_SOURCE ${C_SOURCES})
-    get_filename_component(C_BASE ${C_SOURCE} NAME_WE)
+# Function to compile and link a list of sources
+function(compile_and_link_sources SOURCES EXTRA_INCLUDE_DIRS)
+    foreach(C_SOURCE ${SOURCES})
+        get_filename_component(C_BASE ${C_SOURCE} NAME_WE)
+        set(ELF_NAME "kernel_${C_BASE}.elf")
 
-    add_custom_command(
-        OUTPUT ${ELF_BUILD_DIR}/${C_BASE}.o
-        COMMAND ${CC} ${CFLAGS} ${C_SOURCE} -o ${ELF_BUILD_DIR}/${C_BASE}.o
-        DEPENDS ${C_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/src_c/include/qemu.h
-        COMMENT "Compiling ${C_SOURCE}"
-    )
-endforeach()
+        # Compile
+        if(EXTRA_INCLUDE_DIRS)
+            add_custom_command(
+                OUTPUT ${ELF_BUILD_DIR}/${C_BASE}.o
+                COMMAND ${CC} ${CFLAGS} -I${EXTRA_INCLUDE_DIRS} ${C_SOURCE} -o ${ELF_BUILD_DIR}/${C_BASE}.o
+                DEPENDS ${C_SOURCE}
+                COMMENT "Compiling ${C_SOURCE}"
+            )
+        else()
+            add_custom_command(
+                OUTPUT ${ELF_BUILD_DIR}/${C_BASE}.o
+                COMMAND ${CC} ${CFLAGS} ${C_SOURCE} -o ${ELF_BUILD_DIR}/${C_BASE}.o
+                DEPENDS ${C_SOURCE}
+                COMMENT "Compiling ${C_SOURCE}"
+            )
+        endif()
 
-# ============================================================
-# Link ELF Files
-# ============================================================
+        # Link
+        add_custom_command(
+                OUTPUT ${ELF_BUILD_DIR}/${ELF_NAME}
+                COMMAND ${LD} ${LDFLAGS}
+                        ${ELF_BUILD_DIR}/_multicore.o
+                        ${ELF_BUILD_DIR}/${C_BASE}.o
+                        -o ${ELF_BUILD_DIR}/${ELF_NAME}
+                DEPENDS ${ELF_BUILD_DIR}/_multicore.o ${ELF_BUILD_DIR}/${C_BASE}.o ${CMAKE_CURRENT_SOURCE_DIR}/linker/linker.ld
+                COMMENT "Linking ${ELF_NAME}"
+        )
 
-foreach(C_SOURCE ${C_SOURCES})
-    get_filename_component(C_BASE ${C_SOURCE} NAME_WE)
-    set(ELF_NAME "kernel_${C_BASE}.elf")
 
-    add_custom_command(
-        OUTPUT ${ELF_BUILD_DIR}/${ELF_NAME}
-        COMMAND ${LD} ${LDFLAGS}
-                ${ELF_BUILD_DIR}/_multicore.o
-                ${ELF_BUILD_DIR}/${C_BASE}.o
-                -o ${ELF_BUILD_DIR}/${ELF_NAME}
-        DEPENDS ${ELF_BUILD_DIR}/_multicore.o ${ELF_BUILD_DIR}/${C_BASE}.o ${CMAKE_CURRENT_SOURCE_DIR}/linker/linker.ld
-        COMMENT "Linking ${ELF_NAME}"
-    )
+        # Track outputs - use PARENT_SCOPE to propagate to caller
+        list(APPEND GENERATED_ELFS ${ELF_BUILD_DIR}/${ELF_NAME})
+        list(APPEND ALL_ELF_OUTPUTS ${ELF_BUILD_DIR}/${ELF_NAME} ${ELF_BUILD_DIR}/${C_BASE}.o)
+    endforeach()
 
-    list(APPEND GENERATED_ELFS ${ELF_BUILD_DIR}/${ELF_NAME})
-    list(APPEND ALL_ELF_OUTPUTS ${ELF_BUILD_DIR}/${ELF_NAME})
-endforeach()
+    # Propagate the lists back to parent scope
+    set(GENERATED_ELFS ${GENERATED_ELFS} PARENT_SCOPE)
+    set(ALL_ELF_OUTPUTS ${ALL_ELF_OUTPUTS} PARENT_SCOPE)
+endfunction()
+
+# Initialize lists
+set(GENERATED_ELFS "")
+set(ALL_ELF_OUTPUTS "")
+
+# Compile and link QEMU test cases (always available)
+compile_and_link_sources("${QEMU_SOURCES}" "")
+compile_and_link_sources("${SESAM_SOURCES}" "")
+
 
 # Also add the multicore object to the outputs
 list(APPEND ALL_ELF_OUTPUTS ${ELF_BUILD_DIR}/_multicore.o)
-
-# Add all C object files to outputs
-foreach(C_SOURCE ${C_SOURCES})
-    get_filename_component(C_BASE ${C_SOURCE} NAME_WE)
-    list(APPEND ALL_ELF_OUTPUTS ${ELF_BUILD_DIR}/${C_BASE}.o)
-endforeach()
 
 # ============================================================
 # Create a target to build all ELFs
@@ -110,13 +130,8 @@ foreach(ELF ${GENERATED_ELFS})
         NAME ${QEMU_TEST_NAME}
         COMMAND ${QEMU_SYSTEM_AARCH64} -M virt -cpu max -nographic -semihosting -smp 4 -kernel ${ELF}
     )
-    set_tests_properties(${QEMU_TEST_NAME} PROPERTIES TIMEOUT 60)
+    set_tests_properties(${QEMU_TEST_NAME} PROPERTIES TIMEOUT 5)
 endforeach()
-
-
-
-
-
 
 
 
@@ -166,7 +181,7 @@ endif()
 #message(STATUS "==== Generating tests ====")
 
 # Skip vpsim tests if VPSIM_OUTPUT is not defined
-if(DEFINED VPSIM_OUTPUT AND NOT VPSIM_OUTPUT STREQUAL "")
+if(DEFINED VPSIM_OUTPUT AND NOT VPSIM_OUTPUT STREQUAL "" )
     # Loop over every XML × ELF combination
     foreach(XML_IN ${TEST_XMLS})
 
@@ -231,7 +246,7 @@ if(DEFINED VPSIM_OUTPUT AND NOT VPSIM_OUTPUT STREQUAL "")
                 COMMAND  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}
             )
             set_tests_properties(${TESTNAME}_run PROPERTIES DEPENDS ${GENERATED_XML})
-            set_tests_properties(${TESTNAME}_run PROPERTIES TIMEOUT 3600)
+            set_tests_properties(${TESTNAME}_run PROPERTIES TIMEOUT 240)
             set_tests_properties(${TESTNAME}_run PROPERTIES ENVIRONMENT SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1)
 
             get_property(TESTS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY TESTS)
