@@ -61,7 +61,7 @@
 		<ModelProviderParam2 name="ModelProviderParam25">
 			<domain>1</domain>
 			<option>-cpu</option>
-			<value>max</value>
+			<value>max,sve=true</value>
 			<provider>qemuslave</provider>
 		</ModelProviderParam2>
 		<Interconnect name="system_bus">

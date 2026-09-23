@@ -128,7 +128,7 @@ foreach(ELF ${GENERATED_ELFS})
 
     add_test(
         NAME ${QEMU_TEST_NAME}
-        COMMAND ${QEMU_SYSTEM_AARCH64} -M virt -cpu max -nographic -semihosting -smp 4 -kernel ${ELF}
+        COMMAND ${QEMU_SYSTEM_AARCH64} -M virt -cpu max,sve=true -nographic -semihosting -smp 4 -kernel ${ELF}
     )
     set_tests_properties(${QEMU_TEST_NAME} PROPERTIES TIMEOUT 5)
 endforeach()

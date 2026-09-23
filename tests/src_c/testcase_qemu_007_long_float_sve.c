@@ -4,6 +4,11 @@
 #include <stress.h>
 
 void test_benchmark() {
+    // Check if SVE is supported before enabling
+    if (!has_sve()) {
+        printf_str("SVE not supported on this CPU, skipping SVE test\n");
+        return;
+    }
 
     printf_str("call enable_fp_el1\n");
     enable_fp_el1();
