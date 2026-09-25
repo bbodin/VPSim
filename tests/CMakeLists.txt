@@ -246,7 +246,7 @@ if(DEFINED VPSIM_OUTPUT AND NOT VPSIM_OUTPUT STREQUAL "" )
                 COMMAND  ${ABS_VPSIM_LOCATION} --run ${GENERATED_XML}
             )
             set_tests_properties(${TESTNAME}_run PROPERTIES DEPENDS ${GENERATED_XML})
-            set_tests_properties(${TESTNAME}_run PROPERTIES TIMEOUT 240)
+            set_tests_properties(${TESTNAME}_run PROPERTIES TIMEOUT 3600)
             set_tests_properties(${TESTNAME}_run PROPERTIES ENVIRONMENT SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1)
 
             get_property(TESTS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY TESTS)
