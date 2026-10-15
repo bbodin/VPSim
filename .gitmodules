@@ -7,3 +7,6 @@
 [submodule "vpsim-qemu"]
 	path = vpsim-qemu
 	url = https://github.com/bbodin/vpsim-qemu.git
+[submodule "vpsim-qemu9"]
+	path = vpsim-qemu9
+	url = git@github.com:CEA-LIST/vpsim-qemu.git
