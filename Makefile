@@ -37,3 +37,8 @@ test_only :
 	cmake -B build_test -S tests
 	cmake --build build_test --target compile_elfs 
 	ctest --test-dir build_test -R qemu_local
+
+.PHONY: docker
+
+docker:
+	docker build -t vpsim -f docker/Ubuntu.Dockerfile .

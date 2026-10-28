@@ -232,7 +232,7 @@ add_custom_target(install_vpsim ALL
     COMMENT "Built QEMU, VPSim, and copied artifacts"
 )
 add_custom_target(install_qemu ALL
-    DEPENDS ${QEMU_OUTPUT} link_python
+    DEPENDS ${QEMU_OUTPUT}  ${QEMU7_OUTPUT} ${QEMU9_OUTPUT} link_python
     COMMENT "Built QEMU, VPSim, and copied artifacts"
 )
 add_custom_target(default ALL
